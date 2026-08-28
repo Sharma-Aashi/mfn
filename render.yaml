@@ -1,0 +1,50 @@
+databases:
+  - name: vitalora-db
+    databaseName: vitalora
+    user: vitalora
+    plan: free
+
+services:
+  - type: web
+    name: vitalora-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/products
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_HOST
+        fromDatabase:
+          name: vitalora-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: vitalora-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: vitalora-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: vitalora-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: vitalora-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_DEFAULT_EMAIL
+        value: admin@vitalora.com
+      - key: ADMIN_DEFAULT_PASSWORD
+        generateValue: true
+      # Set this to your actual cPanel storefront domain after the first deploy,
+      # e.g. https://www.yourdomain.com (no trailing slash). Multiple origins can
+      # be comma-separated.
+      - key: APP_CORS_ORIGINS
+        value: https://CHANGE-ME.example.com
+      - key: FRONTEND_BASE_URL
+        value: https://CHANGE-ME.example.com

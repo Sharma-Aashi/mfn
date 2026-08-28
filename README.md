@@ -69,6 +69,31 @@ The dev server proxies API calls to `http://localhost:8080/api` (see `src/enviro
 npm run build       # outputs to frontend/dist/frontend
 ```
 
+## Deploying: backend on Render + frontend on shared (cPanel) hosting
+
+Classic shared hosting (cPanel/FTP-only plans) can't run a JVM process or PostgreSQL, so the backend and database go on Render (free tier), and only the built static frontend goes on your cPanel hosting.
+
+### 1. Backend + database → Render
+
+1. Push this repo to GitHub.
+2. In Render: **New → Blueprint**, point it at the repo. It reads `render.yaml` at the repo root and provisions both the `vitalora-db` Postgres instance and the `vitalora-api` web service (built from `backend/Dockerfile`) automatically, including a generated `JWT_SECRET` and `ADMIN_DEFAULT_PASSWORD`.
+3. Once deployed, open the **vitalora-api** service → *Environment* and:
+   - Note the generated `ADMIN_DEFAULT_PASSWORD` value (Render generated it; it's not the dev default in this README).
+   - Set `APP_CORS_ORIGINS` and `FRONTEND_BASE_URL` to your actual cPanel domain, e.g. `https://www.yourdomain.com` (placeholder values are committed — must be changed for login/checkout to work cross-origin).
+4. Confirm the service's public URL (Render shows it on the service page — `vitalora-api` is first-come-first-served across all of Render, so yours may differ from the guess already baked into the frontend).
+
+### 2. Frontend → cPanel
+
+1. If the Render URL differs from `https://vitalora-api.onrender.com`, update it in `frontend/src/environments/environment.prod.ts` first.
+2. Build:
+   ```bash
+   cd frontend
+   npm run build
+   ```
+3. Upload the **contents** of `frontend/dist/frontend/browser/` (including the `.htaccess` file — it's hidden, make sure your FTP client shows dotfiles) to `public_html` (or a subdomain folder) via FTP or cPanel's File Manager. The `.htaccess` is what makes routes like `/products/vitalora-daily-multivitamin` work on a hard refresh instead of 404ing.
+
+No Docker was available in the environment this was built in, so the Dockerfile's build was reviewed but not test-run — flag it if Render's build fails and I'll debug from the log.
+
 ## What's implemented
 
 Everything in the spec's "Final Quality Requirements" checklist is live and backed by real data — not a static mock:

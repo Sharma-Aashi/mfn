@@ -1,0 +1,17 @@
+# ---- Build stage ----
+FROM maven:3.9-amazoncorretto-17 AS build
+WORKDIR /app
+COPY pom.xml .
+RUN mvn -B dependency:go-offline
+COPY src ./src
+RUN mvn -B clean package -DskipTests
+
+# ---- Runtime stage ----
+FROM amazoncorretto:17-alpine
+WORKDIR /app
+RUN addgroup -S spring && adduser -S spring -G spring
+COPY --from=build /app/target/vitalora-api.jar app.jar
+RUN mkdir -p /app/uploads && chown -R spring:spring /app
+USER spring
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
