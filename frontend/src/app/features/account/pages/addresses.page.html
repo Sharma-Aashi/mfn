@@ -1,0 +1,96 @@
+<div>
+  <div class="mb-6 flex items-center justify-between">
+    <h1 class="font-display text-xl font-semibold text-charcoal-900">Saved Addresses</h1>
+    <button type="button" (click)="openNew()" class="rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-800">+ Add Address</button>
+  </div>
+
+  @if (loading()) {
+    <div class="h-32 skeleton rounded-2xl"></div>
+  } @else if (addresses().length === 0 && !formOpen()) {
+    <app-empty-state title="No saved addresses" description="Add an address to make checkout faster next time.">
+      <svg icon width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <button action type="button" (click)="openNew()" class="rounded-full bg-forest-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-forest-800">Add Address</button>
+    </app-empty-state>
+  } @else {
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      @for (a of addresses(); track a.id) {
+        <div class="rounded-2xl border p-5" [class]="a.isDefault ? 'border-forest-400 bg-forest-50/40' : 'border-charcoal-100 bg-white'">
+          @if (a.isDefault) {
+            <span class="mb-2 inline-block rounded-full bg-forest-700 px-2.5 py-0.5 text-[11px] font-semibold text-white">Default</span>
+          }
+          <p class="text-sm font-semibold text-charcoal-900">{{ a.fullName }}</p>
+          <p class="mt-1 text-sm text-charcoal-600">{{ a.addressLine1 }}@if (a.addressLine2) { , {{ a.addressLine2 }} }</p>
+          <p class="text-sm text-charcoal-600">{{ a.city }}, {{ a.state }} {{ a.postalCode }}</p>
+          <p class="text-sm text-charcoal-600">{{ a.country }}</p>
+          <p class="mt-1 text-sm text-charcoal-500">{{ a.phone }}</p>
+          <div class="mt-4 flex flex-wrap gap-4 text-xs font-semibold">
+            <button type="button" (click)="openEdit(a)" class="text-forest-700 hover:underline">Edit</button>
+            @if (!a.isDefault) {
+              <button type="button" (click)="setDefault(a)" class="text-charcoal-500 hover:underline">Set as Default</button>
+            }
+            <button type="button" (click)="remove(a)" class="text-red-600 hover:underline">Delete</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (formOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-charcoal-900/50" (click)="formOpen.set(false)"></div>
+      <div class="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6">
+        <h2 class="mb-4 font-display text-lg font-semibold text-charcoal-900">{{ editingId() ? 'Edit Address' : 'Add Address' }}</h2>
+        <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="a-fullName" class="form-label">Full Name</label>
+              <input id="a-fullName" type="text" formControlName="fullName" class="form-input" />
+            </div>
+            <div>
+              <label for="a-phone" class="form-label">Phone</label>
+              <input id="a-phone" type="tel" formControlName="phone" class="form-input" />
+            </div>
+          </div>
+          <div>
+            <label for="a-line1" class="form-label">Address Line 1</label>
+            <input id="a-line1" type="text" formControlName="addressLine1" class="form-input" />
+          </div>
+          <div>
+            <label for="a-line2" class="form-label">Address Line 2 (optional)</label>
+            <input id="a-line2" type="text" formControlName="addressLine2" class="form-input" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="a-city" class="form-label">City</label>
+              <input id="a-city" type="text" formControlName="city" class="form-input" />
+            </div>
+            <div>
+              <label for="a-state" class="form-label">State</label>
+              <input id="a-state" type="text" formControlName="state" class="form-input" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="a-postal" class="form-label">Postal Code</label>
+              <input id="a-postal" type="text" formControlName="postalCode" class="form-input" />
+            </div>
+            <div>
+              <label for="a-country" class="form-label">Country</label>
+              <input id="a-country" type="text" formControlName="country" class="form-input" />
+            </div>
+          </div>
+          <label class="flex items-center gap-2 text-sm text-charcoal-600">
+            <input type="checkbox" formControlName="isDefault" class="h-4 w-4 rounded border-charcoal-300 text-forest-700" />
+            Set as default address
+          </label>
+          <div class="flex gap-3 pt-2">
+            <button type="button" (click)="formOpen.set(false)" class="flex-1 rounded-full border border-charcoal-200 py-3 text-sm font-semibold text-charcoal-700">Cancel</button>
+            <button type="submit" [disabled]="saving()" class="flex-1 rounded-full bg-forest-700 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+              {{ saving() ? 'Saving…' : 'Save Address' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

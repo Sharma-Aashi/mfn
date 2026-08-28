@@ -1,0 +1,220 @@
+@if (cartService.cart().items.length === 0 && !submitting()) {
+  <div class="container-vitalora flex min-h-[50vh] flex-col items-center justify-center py-20 text-center">
+    <h1 class="font-display text-2xl font-semibold text-charcoal-900">Your cart is empty</h1>
+    <p class="mt-2 text-charcoal-500">Add a few products before heading to checkout.</p>
+    <a routerLink="/products" class="mt-6 rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800">Shop Now</a>
+  </div>
+} @else {
+  <div class="container-vitalora py-8 sm:py-12">
+    <h1 class="font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">Checkout</h1>
+
+    <!-- Step indicator -->
+    <div class="mt-6 flex items-center gap-2 overflow-x-auto pb-2">
+      @for (label of steps; track label; let i = $index) {
+        <button
+          type="button"
+          (click)="goToStep(i + 1)"
+          class="flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition sm:text-sm"
+          [class]="step() === i + 1 ? 'bg-forest-700 text-white' : step() > i + 1 ? 'bg-forest-100 text-forest-700' : 'bg-charcoal-100 text-charcoal-400'"
+        >
+          <span class="flex h-5 w-5 items-center justify-center rounded-full bg-white/25 text-[11px]">
+            @if (step() > i + 1) { ✓ } @else { {{ i + 1 }} }
+          </span>
+          {{ label }}
+        </button>
+      }
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-3">
+      <div class="lg:col-span-2">
+        <!-- Step 1: Customer Info -->
+        @if (step() === 1) {
+          <form [formGroup]="customerForm" (ngSubmit)="goToStep(2)" class="space-y-4 rounded-2xl border border-charcoal-100 bg-white p-6">
+            <h2 class="font-display text-lg font-semibold text-charcoal-900">Customer Information</h2>
+
+            <div>
+              <label for="customerFullName" class="form-label">Full Name</label>
+              <input id="customerFullName" type="text" formControlName="customerFullName" class="form-input" />
+              @if (customerForm.get('customerFullName')?.invalid && customerForm.get('customerFullName')?.touched) {
+                <p class="form-error">Full name is required.</p>
+              }
+            </div>
+            <div>
+              <label for="customerEmail" class="form-label">Email</label>
+              <input id="customerEmail" type="email" formControlName="customerEmail" class="form-input" />
+              @if (customerForm.get('customerEmail')?.invalid && customerForm.get('customerEmail')?.touched) {
+                <p class="form-error">Enter a valid email address.</p>
+              }
+            </div>
+            <div>
+              <label for="customerPhone" class="form-label">Phone</label>
+              <input id="customerPhone" type="tel" formControlName="customerPhone" class="form-input" />
+              @if (customerForm.get('customerPhone')?.invalid && customerForm.get('customerPhone')?.touched) {
+                <p class="form-error">Enter a valid phone number.</p>
+              }
+            </div>
+
+            <button type="submit" class="w-full rounded-full bg-forest-700 py-3.5 text-sm font-semibold text-white hover:bg-forest-800">Continue to Shipping</button>
+          </form>
+        }
+
+        <!-- Step 2: Shipping Address -->
+        @if (step() === 2) {
+          <form [formGroup]="addressForm" (ngSubmit)="goToStep(3)" class="space-y-4 rounded-2xl border border-charcoal-100 bg-white p-6">
+            <h2 class="font-display text-lg font-semibold text-charcoal-900">Shipping Address</h2>
+
+            @if (savedAddresses().length > 0) {
+              <div class="flex flex-wrap gap-2">
+                @for (a of savedAddresses(); track a.id) {
+                  <button type="button" (click)="useAddress(a)" class="rounded-full border border-charcoal-200 px-3 py-1.5 text-xs font-medium text-charcoal-600 hover:border-forest-400 hover:text-forest-700">
+                    {{ a.city }}, {{ a.state }}
+                  </button>
+                }
+              </div>
+            }
+
+            <div>
+              <label for="addr1" class="form-label">Address Line 1</label>
+              <input id="addr1" type="text" formControlName="shippingAddressLine1" class="form-input" />
+              @if (addressForm.get('shippingAddressLine1')?.invalid && addressForm.get('shippingAddressLine1')?.touched) {
+                <p class="form-error">Address is required.</p>
+              }
+            </div>
+            <div>
+              <label for="addr2" class="form-label">Address Line 2 (optional)</label>
+              <input id="addr2" type="text" formControlName="shippingAddressLine2" class="form-input" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="city" class="form-label">City</label>
+                <input id="city" type="text" formControlName="shippingCity" class="form-input" />
+              </div>
+              <div>
+                <label for="state" class="form-label">State</label>
+                <input id="state" type="text" formControlName="shippingState" class="form-input" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="postal" class="form-label">Postal Code</label>
+                <input id="postal" type="text" formControlName="shippingPostalCode" class="form-input" />
+              </div>
+              <div>
+                <label for="country" class="form-label">Country</label>
+                <input id="country" type="text" formControlName="shippingCountry" class="form-input" />
+              </div>
+            </div>
+
+            <label class="flex items-center gap-2 text-sm text-charcoal-600">
+              <input type="checkbox" formControlName="saveAddress" class="h-4 w-4 rounded border-charcoal-300 text-forest-700 focus:ring-forest-400" />
+              Save this address for future orders
+            </label>
+
+            <div class="flex gap-3">
+              <button type="button" (click)="goToStep(1)" class="flex-1 rounded-full border border-charcoal-200 py-3.5 text-sm font-semibold text-charcoal-700">Back</button>
+              <button type="submit" class="flex-1 rounded-full bg-forest-700 py-3.5 text-sm font-semibold text-white hover:bg-forest-800">Review Order</button>
+            </div>
+          </form>
+        }
+
+        <!-- Step 3: Review -->
+        @if (step() === 3) {
+          <div class="space-y-4 rounded-2xl border border-charcoal-100 bg-white p-6">
+            <h2 class="font-display text-lg font-semibold text-charcoal-900">Review Your Order</h2>
+
+            <div class="divide-y divide-charcoal-100">
+              @for (item of cartService.cart().items; track item.id) {
+                <div class="flex items-center gap-3 py-3">
+                  <div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-beige-100">
+                    @if (item.productImage) {
+                      <img [src]="item.productImage" [alt]="item.productName" loading="lazy" class="h-full w-full object-cover" />
+                    }
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-sm font-semibold text-charcoal-900">{{ item.productName }}</p>
+                    <p class="text-xs text-charcoal-500">Qty: {{ item.quantity }}</p>
+                  </div>
+                  <span class="text-sm font-semibold text-charcoal-800">{{ item.lineTotal | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="rounded-xl bg-beige-50 p-4 text-sm text-charcoal-600">
+              <p class="font-semibold text-charcoal-800">Shipping to:</p>
+              <p>{{ customerForm.value.customerFullName }}, {{ addressForm.value.shippingAddressLine1 }}, {{ addressForm.value.shippingCity }}, {{ addressForm.value.shippingState }} {{ addressForm.value.shippingPostalCode }}</p>
+              <p>{{ customerForm.value.customerPhone }} • {{ customerForm.value.customerEmail }}</p>
+            </div>
+
+            <div>
+              <label for="notes" class="form-label">Order Notes (optional)</label>
+              <textarea id="notes" [formControl]="notesControl" rows="2" class="form-input"></textarea>
+            </div>
+
+            <div class="flex gap-3">
+              <button type="button" (click)="goToStep(2)" class="flex-1 rounded-full border border-charcoal-200 py-3.5 text-sm font-semibold text-charcoal-700">Back</button>
+              <button type="button" (click)="goToStep(4)" class="flex-1 rounded-full bg-forest-700 py-3.5 text-sm font-semibold text-white hover:bg-forest-800">Continue to Payment</button>
+            </div>
+          </div>
+        }
+
+        <!-- Step 4: Payment -->
+        @if (step() === 4) {
+          <div class="space-y-5 rounded-2xl border border-charcoal-100 bg-white p-6">
+            <h2 class="font-display text-lg font-semibold text-charcoal-900">Payment Method</h2>
+
+            <div class="flex items-center gap-4 rounded-xl border-2 border-forest-600 bg-forest-50 p-4">
+              <div class="flex h-11 w-11 items-center justify-center rounded-full bg-forest-700 text-white">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+              </div>
+              <div>
+                <p class="font-semibold text-charcoal-900">Cash on Delivery (COD)</p>
+                <p class="text-sm text-charcoal-500">Pay with cash when your order is delivered.</p>
+              </div>
+              <svg class="ml-auto" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1f3d24" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+            </div>
+
+            <p class="text-xs text-charcoal-400">
+              Online payments (cards, UPI, net banking) are not yet available. We currently support Cash on Delivery for all orders.
+            </p>
+
+            <div class="flex gap-3">
+              <button type="button" (click)="goToStep(3)" class="flex-1 rounded-full border border-charcoal-200 py-3.5 text-sm font-semibold text-charcoal-700">Back</button>
+              <button type="button" (click)="placeOrder()" [disabled]="submitting()" class="flex-1 rounded-full bg-forest-700 py-3.5 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+                {{ submitting() ? 'Placing Order…' : 'Place Order' }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Sticky summary -->
+      <div class="lg:col-span-1">
+        <div class="sticky top-24 rounded-2xl border border-charcoal-100 bg-white p-6">
+          <h2 class="font-display text-lg font-semibold text-charcoal-900">Order Summary</h2>
+          <div class="mt-4 space-y-2.5 text-sm">
+            <div class="flex justify-between text-charcoal-600">
+              <span>Subtotal ({{ cartService.itemCount() }} items)</span>
+              <span>{{ cartService.cart().subtotal | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+            </div>
+            <div class="flex justify-between text-charcoal-600">
+              <span>Shipping</span>
+              <span>{{ shipping() === 0 ? 'Free' : (shipping() | currency: 'INR' : 'symbol' : '1.0-0') }}</span>
+            </div>
+            <div class="flex justify-between text-charcoal-600">
+              <span>Tax</span>
+              <span>Included</span>
+            </div>
+            <div class="flex justify-between border-t border-charcoal-100 pt-3 text-base font-semibold text-charcoal-900">
+              <span>Grand Total</span>
+              <span>{{ grandTotal() | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+            </div>
+          </div>
+          <p class="mt-4 flex items-center gap-1.5 text-xs text-charcoal-400">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            Secure checkout • Pay on delivery
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+}

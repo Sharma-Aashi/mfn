@@ -1,0 +1,16 @@
+<svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="500" fill="#f8f2e6"/>
+  <ellipse cx="200" cy="460" rx="110" ry="16" fill="#1a1712" opacity="0.07"/>
+  <path d="M110 168 Q110 140 138 140 L262 140 Q290 140 290 168 L290 190 L110 190 Z" fill="#fdfbf7" stroke="#e7e6e3" stroke-width="2"/>
+  <rect x="110" y="176" width="180" height="254" rx="26" fill="#fdfbf7" stroke="#e7e6e3" stroke-width="2"/>
+  <rect x="172" y="95" width="56" height="55" rx="6" fill="#fdfbf7" stroke="#e7e6e3" stroke-width="2"/>
+  <rect x="160" y="68" width="80" height="42" rx="9" fill="#3d6941"/>
+  <rect x="160" y="80" width="80" height="6" fill="#000" opacity="0.12"/>
+  <rect x="128" y="228" width="144" height="132" rx="14" fill="#fdfbf7"/>
+  <circle cx="190" cy="258" r="8" fill="#3d6941" opacity="0.75"/>
+  <circle cx="212" cy="266" r="10" fill="#3d6941" opacity="0.6"/>
+  <circle cx="196" cy="280" r="6" fill="#3d6941" opacity="0.85"/>
+  <text x="200" y="308" text-anchor="middle" font-family="Georgia, serif" font-size="16" font-weight="600" fill="#1f3d24">VITALORA</text>
+  <text x="200" y="331" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" letter-spacing="1" fill="#46413a">PROBIOTIC</text>
+  <text x="200" y="348" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" letter-spacing="1" fill="#46413a">BALANCE</text>
+</svg>

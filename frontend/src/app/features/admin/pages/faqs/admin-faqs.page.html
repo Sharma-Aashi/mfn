@@ -1,0 +1,75 @@
+<div>
+  <div class="mb-6 flex items-center justify-between">
+    <h1 class="font-display text-xl font-semibold text-charcoal-900">FAQs</h1>
+    <button type="button" (click)="openNew()" class="rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-800">+ Add FAQ</button>
+  </div>
+
+  @if (loading()) {
+    <div class="space-y-2">
+      @for (i of [1, 2, 3]; track i) { <div class="h-16 skeleton rounded-xl"></div> }
+    </div>
+  } @else {
+    <div class="divide-y divide-charcoal-100 rounded-2xl border border-charcoal-100 bg-white">
+      @for (f of faqs(); track f.id; let i = $index) {
+        <div class="flex items-start gap-3 p-4">
+          <div class="mt-1 flex flex-col gap-0.5">
+            <button type="button" (click)="moveUp(i)" [disabled]="i === 0" class="text-charcoal-400 hover:text-forest-700 disabled:opacity-20" aria-label="Move up">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6" /></svg>
+            </button>
+            <button type="button" (click)="moveDown(i)" [disabled]="i === faqs().length - 1" class="text-charcoal-400 hover:text-forest-700 disabled:opacity-20" aria-label="Move down">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="badge">{{ f.category }}</span>
+              <button type="button" (click)="toggleStatus(f)" class="rounded-full px-2 py-0.5 text-[11px] font-semibold" [class]="f.active ? 'bg-forest-100 text-forest-700' : 'bg-charcoal-100 text-charcoal-500'">
+                {{ f.active ? 'Active' : 'Inactive' }}
+              </button>
+            </div>
+            <p class="mt-1.5 text-sm font-semibold text-charcoal-900">{{ f.question }}</p>
+            <p class="mt-1 line-clamp-2 text-xs text-charcoal-500">{{ f.answer }}</p>
+          </div>
+          <div class="flex shrink-0 flex-col gap-2 text-xs font-semibold">
+            <button type="button" (click)="openEdit(f)" class="text-forest-700 hover:underline">Edit</button>
+            <button type="button" (click)="remove(f)" class="text-red-600 hover:underline">Delete</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (formOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-charcoal-900/50" (click)="formOpen.set(false)"></div>
+      <div class="relative w-full max-w-lg rounded-2xl bg-white p-6">
+        <h2 class="mb-4 font-display text-lg font-semibold text-charcoal-900">{{ editingId() ? 'Edit FAQ' : 'Add FAQ' }}</h2>
+        <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
+          <div>
+            <label for="f-category" class="form-label">Category</label>
+            <select id="f-category" formControlName="category" class="form-select">
+              @for (c of categoryOptions; track c) { <option [value]="c">{{ c }}</option> }
+            </select>
+          </div>
+          <div>
+            <label for="f-question" class="form-label">Question</label>
+            <input id="f-question" type="text" formControlName="question" class="form-input" />
+          </div>
+          <div>
+            <label for="f-answer" class="form-label">Answer</label>
+            <textarea id="f-answer" formControlName="answer" rows="4" class="form-input"></textarea>
+          </div>
+          <label class="flex items-center gap-2 text-sm text-charcoal-700">
+            <input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-charcoal-300 text-forest-700" /> Active
+          </label>
+          <div class="flex gap-3 pt-2">
+            <button type="button" (click)="formOpen.set(false)" class="flex-1 rounded-full border border-charcoal-200 py-3 text-sm font-semibold text-charcoal-700">Cancel</button>
+            <button type="submit" [disabled]="saving()" class="flex-1 rounded-full bg-forest-700 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+              {{ saving() ? 'Saving…' : 'Save' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

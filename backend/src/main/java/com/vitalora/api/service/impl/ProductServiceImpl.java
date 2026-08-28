@@ -1,0 +1,358 @@
+package com.vitalora.api.service.impl;
+
+import com.vitalora.api.config.AppProperties;
+import com.vitalora.api.dto.common.PageResponse;
+import com.vitalora.api.dto.product.ProductImageOrderRequest;
+import com.vitalora.api.dto.product.ProductRequest;
+import com.vitalora.api.dto.product.ProductResponse;
+import com.vitalora.api.dto.product.ProductSummaryResponse;
+import com.vitalora.api.entity.Category;
+import com.vitalora.api.entity.Inventory;
+import com.vitalora.api.entity.Product;
+import com.vitalora.api.entity.ProductImage;
+import com.vitalora.api.exception.BadRequestException;
+import com.vitalora.api.exception.DuplicateResourceException;
+import com.vitalora.api.exception.ResourceNotFoundException;
+import com.vitalora.api.mapper.ProductMapper;
+import com.vitalora.api.repository.CategoryRepository;
+import com.vitalora.api.repository.ProductRepository;
+import com.vitalora.api.service.FileStorageService;
+import com.vitalora.api.service.ProductService;
+import com.vitalora.api.specification.ProductSpecification;
+import com.vitalora.api.util.SlugUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.math.BigDecimal;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+@Service
+@RequiredArgsConstructor
+public class ProductServiceImpl implements ProductService {
+
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final FileStorageService fileStorageService;
+    private final AppProperties appProperties;
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<ProductSummaryResponse> search(String q, String category, BigDecimal minPrice,
+                                                         BigDecimal maxPrice, Double minRating, String sort,
+                                                         int page, int size) {
+        Specification<Product> spec = and(
+                ProductSpecification.isActive(true),
+                ProductSpecification.search(q),
+                ProductSpecification.hasCategorySlug(category),
+                ProductSpecification.priceBetween(minPrice, maxPrice),
+                ProductSpecification.minRating(minRating),
+                priceOrderSpec(sort)
+        );
+
+        Pageable pageable = PageRequest.of(page, size, resolveSort(sort));
+        return PageResponse.of(productRepository.findAll(spec, pageable), ProductMapper::toSummary);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<ProductResponse> searchForAdmin(String q, Boolean active, String category, int page,
+                                                          int size, String sort) {
+        Specification<Product> spec = and(
+                ProductSpecification.search(q),
+                ProductSpecification.hasCategorySlug(category),
+                active != null ? ProductSpecification.isActive(active) : null,
+                priceOrderSpec(sort)
+        );
+
+        Pageable pageable = PageRequest.of(page, size, resolveSort(sort));
+        return PageResponse.of(productRepository.findAll(spec, pageable), ProductMapper::toResponse);
+    }
+
+    /**
+     * Combines specifications with AND, silently skipping any null entries (Spring Data's
+     * own Specification#and rejects a null argument outright rather than treating it as a no-op).
+     */
+    @SafeVarargs
+    private Specification<Product> and(Specification<Product>... specs) {
+        return Specification.allOf(java.util.Arrays.stream(specs).filter(java.util.Objects::nonNull).toList());
+    }
+
+    private Specification<Product> priceOrderSpec(String sort) {
+        if ("price_low".equals(sort)) {
+            return ProductSpecification.orderByEffectivePrice(true);
+        }
+        if ("price_high".equals(sort)) {
+            return ProductSpecification.orderByEffectivePrice(false);
+        }
+        return null;
+    }
+
+    private Sort resolveSort(String sort) {
+        if (sort == null) {
+            return Sort.by(Sort.Order.desc("bestSeller"), Sort.Order.desc("reviewCount"));
+        }
+        return switch (sort) {
+            case "newest" -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case "price_low", "price_high" -> Sort.unsorted();
+            case "rating" -> Sort.by(Sort.Direction.DESC, "avgRating");
+            default -> Sort.by(Sort.Order.desc("bestSeller"), Sort.Order.desc("reviewCount"));
+        };
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductResponse getBySlug(String slug) {
+        Product product = productRepository.findBySlug(slug)
+                .orElseThrow(() -> ResourceNotFoundException.of("Product", slug));
+        return ProductMapper.toResponse(product);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductResponse getById(Long id) {
+        return ProductMapper.toResponse(findEntity(id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductSummaryResponse> getFeatured() {
+        Specification<Product> spec = Specification.where(ProductSpecification.isActive(true))
+                .and(ProductSpecification.isFeatured());
+        return productRepository.findAll(spec, PageRequest.of(0, 8, Sort.by(Sort.Direction.DESC, "createdAt")))
+                .map(ProductMapper::toSummary).getContent();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductSummaryResponse> getBestSellers() {
+        Specification<Product> spec = Specification.where(ProductSpecification.isActive(true))
+                .and(ProductSpecification.isBestSeller());
+        return productRepository.findAll(spec, PageRequest.of(0, 8, Sort.by(Sort.Direction.DESC, "avgRating")))
+                .map(ProductMapper::toSummary).getContent();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductSummaryResponse> getNewArrivals() {
+        Specification<Product> spec = Specification.where(ProductSpecification.isActive(true))
+                .and(ProductSpecification.isNewArrival());
+        return productRepository.findAll(spec, PageRequest.of(0, 8, Sort.by(Sort.Direction.DESC, "createdAt")))
+                .map(ProductMapper::toSummary).getContent();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductSummaryResponse> getRelated(String slug) {
+        Product product = productRepository.findBySlug(slug)
+                .orElseThrow(() -> ResourceNotFoundException.of("Product", slug));
+        List<Long> categoryIds = product.getCategories().stream().map(Category::getId).toList();
+        if (categoryIds.isEmpty()) {
+            return List.of();
+        }
+        return productRepository.findRelated(product.getId(), categoryIds).stream()
+                .limit(4)
+                .map(ProductMapper::toSummary)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse create(ProductRequest request) {
+        String slug = (request.slug() != null && !request.slug().isBlank())
+                ? SlugUtil.slugify(request.slug())
+                : SlugUtil.slugify(request.name());
+        if (productRepository.existsBySlug(slug)) {
+            throw new DuplicateResourceException("A product with slug '" + slug + "' already exists.");
+        }
+        if (productRepository.existsBySku(request.sku())) {
+            throw new DuplicateResourceException("A product with SKU '" + request.sku() + "' already exists.");
+        }
+
+        Product product = Product.builder()
+                .name(request.name())
+                .slug(slug)
+                .sku(request.sku())
+                .shortDescription(request.shortDescription())
+                .description(request.description())
+                .benefits(request.benefits())
+                .ingredients(request.ingredients())
+                .nutritionalInfo(request.nutritionalInfo())
+                .usageInstructions(request.usageInstructions())
+                .warnings(request.warnings())
+                .price(request.price())
+                .salePrice(request.salePrice())
+                .active(request.active() == null || request.active())
+                .featured(Boolean.TRUE.equals(request.featured()))
+                .bestSeller(Boolean.TRUE.equals(request.bestSeller()))
+                .newArrival(Boolean.TRUE.equals(request.newArrival()))
+                .tags(request.tags())
+                .categories(resolveCategories(request.categoryIds()))
+                .build();
+
+        Inventory inventory = Inventory.builder()
+                .product(product)
+                .stockQuantity(request.stockQuantity())
+                .lowStockThreshold(request.lowStockThreshold() != null
+                        ? request.lowStockThreshold()
+                        : appProperties.getInventory().getDefaultLowStockThreshold())
+                .build();
+        product.setInventory(inventory);
+
+        return ProductMapper.toResponse(productRepository.save(product));
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse update(Long id, ProductRequest request) {
+        Product product = findEntity(id);
+
+        String slug = (request.slug() != null && !request.slug().isBlank())
+                ? SlugUtil.slugify(request.slug())
+                : SlugUtil.slugify(request.name());
+        if (productRepository.existsBySlugAndIdNot(slug, id)) {
+            throw new DuplicateResourceException("A product with slug '" + slug + "' already exists.");
+        }
+        if (productRepository.existsBySkuAndIdNot(request.sku(), id)) {
+            throw new DuplicateResourceException("A product with SKU '" + request.sku() + "' already exists.");
+        }
+
+        product.setName(request.name());
+        product.setSlug(slug);
+        product.setSku(request.sku());
+        product.setShortDescription(request.shortDescription());
+        product.setDescription(request.description());
+        product.setBenefits(request.benefits());
+        product.setIngredients(request.ingredients());
+        product.setNutritionalInfo(request.nutritionalInfo());
+        product.setUsageInstructions(request.usageInstructions());
+        product.setWarnings(request.warnings());
+        product.setPrice(request.price());
+        product.setSalePrice(request.salePrice());
+        if (request.active() != null) {
+            product.setActive(request.active());
+        }
+        product.setFeatured(Boolean.TRUE.equals(request.featured()));
+        product.setBestSeller(Boolean.TRUE.equals(request.bestSeller()));
+        product.setNewArrival(Boolean.TRUE.equals(request.newArrival()));
+        product.setTags(request.tags());
+        product.setCategories(resolveCategories(request.categoryIds()));
+
+        Inventory inventory = product.getInventory();
+        if (inventory == null) {
+            inventory = Inventory.builder().product(product).build();
+            product.setInventory(inventory);
+        }
+        inventory.setStockQuantity(request.stockQuantity());
+        if (request.lowStockThreshold() != null) {
+            inventory.setLowStockThreshold(request.lowStockThreshold());
+        }
+
+        return ProductMapper.toResponse(productRepository.save(product));
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        Product product = findEntity(id);
+        product.getImages().forEach(img -> fileStorageService.delete(img.getImageUrl()));
+        productRepository.delete(product);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse updateStatus(Long id, boolean active) {
+        Product product = findEntity(id);
+        product.setActive(active);
+        return ProductMapper.toResponse(productRepository.save(product));
+    }
+
+    @Override
+    @Transactional
+    public void bulkUpdateStatus(List<Long> ids, boolean active) {
+        List<Product> products = productRepository.findAllById(ids);
+        products.forEach(p -> p.setActive(active));
+        productRepository.saveAll(products);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse addImage(Long productId, MultipartFile file, boolean primary) {
+        Product product = findEntity(productId);
+        String url = fileStorageService.store(file, "products");
+
+        boolean makePrimary = primary || product.getImages().isEmpty();
+        if (makePrimary) {
+            product.getImages().forEach(img -> img.setPrimary(false));
+        }
+
+        int nextOrder = product.getImages().stream().mapToInt(ProductImage::getDisplayOrder).max().orElse(-1) + 1;
+        ProductImage image = ProductImage.builder()
+                .imageUrl(url)
+                .displayOrder(nextOrder)
+                .primary(makePrimary)
+                .altText(product.getName())
+                .build();
+        product.addImage(image);
+
+        return ProductMapper.toResponse(productRepository.save(product));
+    }
+
+    @Override
+    @Transactional
+    public void deleteImage(Long productId, Long imageId) {
+        Product product = findEntity(productId);
+        ProductImage target = product.getImages().stream()
+                .filter(img -> img.getId().equals(imageId))
+                .findFirst()
+                .orElseThrow(() -> ResourceNotFoundException.of("Product image", imageId));
+
+        boolean wasPrimary = target.isPrimary();
+        product.getImages().remove(target);
+        fileStorageService.delete(target.getImageUrl());
+
+        if (wasPrimary && !product.getImages().isEmpty()) {
+            product.getImages().get(0).setPrimary(true);
+        }
+        productRepository.save(product);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse reorderImages(Long productId, ProductImageOrderRequest request) {
+        Product product = findEntity(productId);
+        for (int i = 0; i < request.imageIds().size(); i++) {
+            final int order = i;
+            Long imageId = request.imageIds().get(i);
+            ProductImage image = product.getImages().stream()
+                    .filter(img -> img.getId().equals(imageId))
+                    .findFirst()
+                    .orElseThrow(() -> new BadRequestException("Image " + imageId + " does not belong to this product."));
+            image.setDisplayOrder(order);
+        }
+        return ProductMapper.toResponse(productRepository.save(product));
+    }
+
+    private Set<Category> resolveCategories(Set<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return new LinkedHashSet<>();
+        }
+        List<Category> found = categoryRepository.findAllById(categoryIds);
+        if (found.size() != categoryIds.size()) {
+            throw new BadRequestException("One or more selected categories do not exist.");
+        }
+        return new LinkedHashSet<>(found);
+    }
+
+    private Product findEntity(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Product", id));
+    }
+}

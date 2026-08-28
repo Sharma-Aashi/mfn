@@ -1,0 +1,105 @@
+<div>
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="font-display text-xl font-semibold text-charcoal-900">Products</h1>
+      <p class="text-sm text-charcoal-500">{{ totalElements() }} total products</p>
+    </div>
+    <a routerLink="/admin/products/new" class="rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-800">+ Add Product</a>
+  </div>
+
+  <div class="mb-4 flex flex-wrap gap-3">
+    <input type="search" [(ngModel)]="q" (ngModelChange)="onFilterChange()" placeholder="Search by name or SKU…" class="filter-input max-w-xs" />
+    <select [(ngModel)]="category" (ngModelChange)="onFilterChange()" class="form-select max-w-[10rem]">
+      <option value="">All Categories</option>
+      @for (c of categories(); track c.id) {
+        <option [value]="c.slug">{{ c.name }}</option>
+      }
+    </select>
+    <select [(ngModel)]="active" (ngModelChange)="onFilterChange()" class="form-select max-w-[9rem]">
+      <option value="">All Status</option>
+      <option value="true">Active</option>
+      <option value="false">Inactive</option>
+    </select>
+  </div>
+
+  @if (selected().size > 0) {
+    <div class="mb-4 flex items-center gap-3 rounded-xl bg-forest-50 px-4 py-2.5 text-sm">
+      <span class="font-medium text-forest-800">{{ selected().size }} selected</span>
+      <button type="button" (click)="bulkSetStatus(true)" class="font-semibold text-forest-700 hover:underline">Activate</button>
+      <button type="button" (click)="bulkSetStatus(false)" class="font-semibold text-charcoal-600 hover:underline">Deactivate</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="space-y-2">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <div class="h-16 skeleton rounded-xl"></div>
+      }
+    </div>
+  } @else if (products().length === 0) {
+    <app-empty-state title="No products found" description="Try adjusting your search or filters, or add a new product.">
+      <svg icon width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 2h6l1 3h3a1 1 0 011 1v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a1 1 0 011-1h3l1-3z"/></svg>
+    </app-empty-state>
+  } @else {
+    <div class="overflow-x-auto rounded-2xl border border-charcoal-100 bg-white">
+      <table class="w-full min-w-[720px] text-sm">
+        <thead>
+          <tr class="border-b border-charcoal-100 text-left text-xs uppercase tracking-wide text-charcoal-400">
+            <th class="w-10 px-4 py-3"><input type="checkbox" [checked]="selected().size === products().length" (change)="toggleSelectAll()" /></th>
+            <th class="px-4 py-3">Product</th>
+            <th class="px-4 py-3">SKU</th>
+            <th class="px-4 py-3">Price</th>
+            <th class="px-4 py-3">Stock</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3">Flags</th>
+            <th class="px-4 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-charcoal-100">
+          @for (p of products(); track p.id) {
+            <tr class="hover:bg-beige-50/60">
+              <td class="px-4 py-3"><input type="checkbox" [checked]="selected().has(p.id)" (change)="toggleSelect(p.id)" /></td>
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-3">
+                  <div class="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-beige-100">
+                    @if (p.images[0]) {
+                      <img [src]="p.images[0].imageUrl" [alt]="p.name" class="h-full w-full object-cover" />
+                    }
+                  </div>
+                  <span class="font-medium text-charcoal-800">{{ p.name }}</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-charcoal-500">{{ p.sku }}</td>
+              <td class="px-4 py-3 text-charcoal-700">{{ p.effectivePrice | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+              <td class="px-4 py-3">
+                <span [class]="p.stockQuantity <= p.lowStockThreshold ? 'text-red-600 font-semibold' : 'text-charcoal-600'">{{ p.stockQuantity }}</span>
+              </td>
+              <td class="px-4 py-3">
+                <button type="button" (click)="toggleStatus(p)" class="rounded-full px-2.5 py-1 text-xs font-semibold" [class]="p.active ? 'bg-forest-100 text-forest-700' : 'bg-charcoal-100 text-charcoal-500'">
+                  {{ p.active ? 'Active' : 'Inactive' }}
+                </button>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex flex-wrap gap-1">
+                  @if (p.featured) { <span class="badge">Featured</span> }
+                  @if (p.bestSeller) { <span class="badge">Bestseller</span> }
+                  @if (p.newArrival) { <span class="badge">New</span> }
+                </div>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="flex justify-end gap-3 text-xs font-semibold">
+                  <a [routerLink]="['/admin/products', p.id, 'edit']" class="text-forest-700 hover:underline">Edit</a>
+                  <button type="button" (click)="remove(p)" class="text-red-600 hover:underline">Delete</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6">
+      <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+    </div>
+  }
+</div>

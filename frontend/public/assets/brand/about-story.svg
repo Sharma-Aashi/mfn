@@ -1,0 +1,16 @@
+<svg viewBox="0 0 500 375" xmlns="http://www.w3.org/2000/svg">
+  <rect width="500" height="375" fill="#d7e3d8"/>
+  <path d="M0 260 Q 125 200 250 250 T 500 240 V375 H0 Z" fill="#b1c8b3"/>
+  <path d="M0 300 Q 125 260 250 300 T 500 290 V375 H0 Z" fill="#86a889"/>
+  <g transform="translate(160,110)">
+    <path d="M0 56 Q0 26 28 26 L142 26 Q170 26 170 56 L170 82 L0 82 Z" fill="#fdfbf7" stroke="#e7e6e3" stroke-width="2"/>
+    <rect x="0" y="72" width="170" height="150" rx="26" fill="#fdfbf7" stroke="#e7e6e3" stroke-width="2"/>
+    <rect x="52" y="-10" width="66" height="42" rx="6" fill="#fdfbf7" stroke="#e7e6e3" stroke-width="2"/>
+    <rect x="40" y="-40" width="90" height="38" rx="9" fill="#1f3d24"/>
+    <rect x="24" y="120" width="122" height="92" rx="13" fill="#e3d3ab"/>
+    <text x="85" y="170" text-anchor="middle" font-family="Georgia, serif" font-size="15" font-weight="600" fill="#1f3d24">VITALORA</text>
+  </g>
+  <circle cx="90" cy="80" r="26" fill="#3d6941" opacity="0.8"/>
+  <circle cx="430" cy="90" r="18" fill="#c3a25e" opacity="0.8"/>
+  <circle cx="440" cy="260" r="30" fill="#1f3d24" opacity="0.15"/>
+</svg>

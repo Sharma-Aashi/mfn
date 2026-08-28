@@ -1,0 +1,187 @@
+<div>
+  <h1 class="mb-6 font-display text-xl font-semibold text-charcoal-900">Website Content</h1>
+
+  <div class="mb-6 flex flex-wrap gap-2">
+    @for (t of [['home','Homepage'],['about','About Us'],['contact','Contact Us'],['policies','Policies'],['banners','Banners']]; track t[0]) {
+      <button
+        type="button"
+        (click)="setTab($any(t[0]))"
+        class="rounded-full border px-4 py-1.5 text-sm font-medium transition"
+        [class]="tab() === t[0] ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-200 text-charcoal-600'"
+      >
+        {{ t[1] }}
+      </button>
+    }
+  </div>
+
+  @if (tab() === 'home') {
+    <form [formGroup]="homeForm" (ngSubmit)="saveHome()" class="space-y-6">
+      <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Hero Section</h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label for="heroTitle" class="form-label">Headline</label>
+            <input id="heroTitle" type="text" formControlName="heroTitle" class="form-input" />
+          </div>
+          <div class="sm:col-span-2">
+            <label for="heroSubtitle" class="form-label">Subheading</label>
+            <textarea id="heroSubtitle" formControlName="heroSubtitle" rows="2" class="form-input"></textarea>
+          </div>
+          <div><label for="heroPrimaryCtaText" class="form-label">Primary CTA Text</label><input id="heroPrimaryCtaText" type="text" formControlName="heroPrimaryCtaText" class="form-input" /></div>
+          <div><label for="heroPrimaryCtaLink" class="form-label">Primary CTA Link</label><input id="heroPrimaryCtaLink" type="text" formControlName="heroPrimaryCtaLink" class="form-input" /></div>
+          <div><label for="heroSecondaryCtaText" class="form-label">Secondary CTA Text</label><input id="heroSecondaryCtaText" type="text" formControlName="heroSecondaryCtaText" class="form-input" /></div>
+          <div><label for="heroSecondaryCtaLink" class="form-label">Secondary CTA Link</label><input id="heroSecondaryCtaLink" type="text" formControlName="heroSecondaryCtaLink" class="form-input" /></div>
+          <div class="sm:col-span-2"><label for="heroImage" class="form-label">Hero Image Path</label><input id="heroImage" type="text" formControlName="heroImage" class="form-input" /></div>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Promotional Banner</h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div><label for="promoTitle" class="form-label">Title</label><input id="promoTitle" type="text" formControlName="promoTitle" class="form-input" /></div>
+          <div><label for="promoSubtitle" class="form-label">Subtitle</label><input id="promoSubtitle" type="text" formControlName="promoSubtitle" class="form-input" /></div>
+          <div><label for="promoCtaText" class="form-label">CTA Text</label><input id="promoCtaText" type="text" formControlName="promoCtaText" class="form-input" /></div>
+          <div><label for="promoCtaLink" class="form-label">CTA Link</label><input id="promoCtaLink" type="text" formControlName="promoCtaLink" class="form-input" /></div>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Newsletter</h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div><label for="newsletterHeading" class="form-label">Heading</label><input id="newsletterHeading" type="text" formControlName="newsletterHeading" class="form-input" /></div>
+          <div><label for="newsletterSubtitle" class="form-label">Subtitle</label><input id="newsletterSubtitle" type="text" formControlName="newsletterSubtitle" class="form-input" /></div>
+        </div>
+      </section>
+
+      <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+        {{ saving() ? 'Saving…' : 'Save Homepage Content' }}
+      </button>
+    </form>
+  }
+
+  @if (tab() === 'about') {
+    <form [formGroup]="aboutForm" (ngSubmit)="saveAbout()" class="space-y-6">
+      <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Hero</h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div><label for="a-heroHeading" class="form-label">Heading</label><input id="a-heroHeading" type="text" formControlName="heroHeading" class="form-input" /></div>
+          <div><label for="a-heroSubtitle" class="form-label">Subtitle</label><input id="a-heroSubtitle" type="text" formControlName="heroSubtitle" class="form-input" /></div>
+        </div>
+      </section>
+      <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Our Story</h2>
+        <label for="storyHeading" class="form-label">Heading</label>
+        <input id="storyHeading" type="text" formControlName="storyHeading" class="form-input mb-3" />
+        <label for="storyBody" class="form-label">Body</label>
+        <textarea id="storyBody" formControlName="storyBody" rows="4" class="form-input"></textarea>
+      </section>
+      <section class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
+          <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Mission</h2>
+          <input type="text" formControlName="missionHeading" class="form-input mb-3" placeholder="Heading" />
+          <textarea formControlName="missionBody" rows="3" class="form-input" placeholder="Body"></textarea>
+        </div>
+        <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
+          <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Vision</h2>
+          <input type="text" formControlName="visionHeading" class="form-input mb-3" placeholder="Heading" />
+          <textarea formControlName="visionBody" rows="3" class="form-input" placeholder="Body"></textarea>
+        </div>
+        <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
+          <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Quality Philosophy</h2>
+          <input type="text" formControlName="qualityHeading" class="form-input mb-3" placeholder="Heading" />
+          <textarea formControlName="qualityBody" rows="3" class="form-input" placeholder="Body"></textarea>
+        </div>
+        <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
+          <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Ingredient Philosophy</h2>
+          <input type="text" formControlName="ingredientsHeading" class="form-input mb-3" placeholder="Heading" />
+          <textarea formControlName="ingredientsBody" rows="3" class="form-input" placeholder="Body"></textarea>
+        </div>
+      </section>
+      <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Founder Story</h2>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <input type="text" formControlName="founderHeading" class="form-input" placeholder="Heading" />
+          <input type="text" formControlName="founderName" class="form-input" placeholder="Founder Name" />
+        </div>
+        <textarea formControlName="founderBody" rows="3" class="form-input mt-3" placeholder="Founder message"></textarea>
+      </section>
+      <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+        {{ saving() ? 'Saving…' : 'Save About Page Content' }}
+      </button>
+    </form>
+  }
+
+  @if (tab() === 'contact') {
+    <form [formGroup]="contactForm" (ngSubmit)="saveContact()" class="max-w-xl space-y-4 rounded-2xl border border-charcoal-100 bg-white p-6">
+      <div><label for="companyName" class="form-label">Company Name</label><input id="companyName" type="text" formControlName="companyName" class="form-input" /></div>
+      <div><label for="c-email" class="form-label">Email</label><input id="c-email" type="email" formControlName="email" class="form-input" /></div>
+      <div><label for="c-phone" class="form-label">Phone</label><input id="c-phone" type="text" formControlName="phone" class="form-input" /></div>
+      <div><label for="c-address" class="form-label">Address</label><textarea id="c-address" formControlName="address" rows="2" class="form-input"></textarea></div>
+      <div><label for="c-hours" class="form-label">Business Hours</label><input id="c-hours" type="text" formControlName="businessHours" class="form-input" /></div>
+      <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+        {{ saving() ? 'Saving…' : 'Save Contact Info' }}
+      </button>
+    </form>
+  }
+
+  @if (tab() === 'policies') {
+    <form [formGroup]="policiesForm" (ngSubmit)="savePolicies()" class="space-y-6">
+      @for (p of [['privacy','Privacy Policy'],['terms','Terms & Conditions'],['shipping','Shipping Policy'],['refund','Returns & Refunds']]; track p[0]) {
+        <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+          <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">{{ p[1] }}</h2>
+          <input type="text" [formControlName]="p[0] + 'Title'" class="form-input mb-3" placeholder="Title" />
+          <textarea [formControlName]="p[0] + 'Body'" rows="5" class="form-input" placeholder="Policy text"></textarea>
+        </section>
+      }
+      <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+        {{ saving() ? 'Saving…' : 'Save Policies' }}
+      </button>
+    </form>
+  }
+
+  @if (tab() === 'banners') {
+    <div>
+      <div class="mb-4 flex justify-end">
+        <button type="button" (click)="openNewBanner()" class="rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-800">+ Add Banner</button>
+      </div>
+      <div class="space-y-3">
+        @for (b of banners(); track b.id) {
+          <div class="flex items-center justify-between rounded-2xl border border-charcoal-100 bg-white p-4">
+            <div>
+              <p class="text-sm font-semibold text-charcoal-900">{{ b.title }}</p>
+              <p class="text-xs text-charcoal-500">{{ b.subtitle }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <button type="button" (click)="toggleBannerStatus(b)" class="rounded-full px-2.5 py-1 text-xs font-semibold" [class]="b.active ? 'bg-forest-100 text-forest-700' : 'bg-charcoal-100 text-charcoal-500'">
+                {{ b.active ? 'Active' : 'Inactive' }}
+              </button>
+              <button type="button" (click)="openEditBanner(b)" class="text-xs font-semibold text-forest-700 hover:underline">Edit</button>
+              <button type="button" (click)="removeBanner(b)" class="text-xs font-semibold text-red-600 hover:underline">Delete</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (bannerFormOpen()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-charcoal-900/50" (click)="bannerFormOpen.set(false)"></div>
+        <div class="relative w-full max-w-md rounded-2xl bg-white p-6">
+          <h2 class="mb-4 font-display text-lg font-semibold text-charcoal-900">{{ editingBannerId() ? 'Edit Banner' : 'Add Banner' }}</h2>
+          <form [formGroup]="bannerForm" (ngSubmit)="saveBanner()" class="space-y-4">
+            <div><label for="b-title" class="form-label">Title</label><input id="b-title" type="text" formControlName="title" class="form-input" /></div>
+            <div><label for="b-subtitle" class="form-label">Subtitle</label><input id="b-subtitle" type="text" formControlName="subtitle" class="form-input" /></div>
+            <div><label for="b-ctaText" class="form-label">CTA Text</label><input id="b-ctaText" type="text" formControlName="ctaText" class="form-input" /></div>
+            <div><label for="b-ctaLink" class="form-label">CTA Link</label><input id="b-ctaLink" type="text" formControlName="ctaLink" class="form-input" /></div>
+            <div><label for="b-order" class="form-label">Display Order</label><input id="b-order" type="number" formControlName="displayOrder" class="form-input" /></div>
+            <label class="flex items-center gap-2 text-sm text-charcoal-700"><input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-charcoal-300 text-forest-700" /> Active</label>
+            <div class="flex gap-3 pt-2">
+              <button type="button" (click)="bannerFormOpen.set(false)" class="flex-1 rounded-full border border-charcoal-200 py-3 text-sm font-semibold text-charcoal-700">Cancel</button>
+              <button type="submit" class="flex-1 rounded-full bg-forest-700 py-3 text-sm font-semibold text-white hover:bg-forest-800">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+  }
+</div>

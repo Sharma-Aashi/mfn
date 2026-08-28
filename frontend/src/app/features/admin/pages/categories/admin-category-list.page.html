@@ -1,0 +1,86 @@
+<div>
+  <div class="mb-6 flex items-center justify-between">
+    <h1 class="font-display text-xl font-semibold text-charcoal-900">Categories</h1>
+    <button type="button" (click)="openNew()" class="rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-800">+ Add Category</button>
+  </div>
+
+  @if (loading()) {
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (i of [1, 2, 3]; track i) { <div class="h-40 skeleton rounded-2xl"></div> }
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (c of categories(); track c.id) {
+        <div class="rounded-2xl border border-charcoal-100 bg-white p-5">
+          <div class="mb-3 flex items-center gap-3">
+            <label class="relative h-14 w-14 shrink-0 cursor-pointer overflow-hidden rounded-xl bg-beige-100">
+              @if (c.imageUrl) {
+                <img [src]="c.imageUrl" [alt]="c.name" class="h-full w-full object-cover" />
+              }
+              <div class="absolute inset-0 flex items-center justify-center bg-charcoal-900/0 text-white opacity-0 transition hover:bg-charcoal-900/40 hover:opacity-100">
+                @if (uploadingImageId() === c.id) {
+                  <span class="text-[9px]">…</span>
+                } @else {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
+                }
+              </div>
+              <input type="file" accept="image/*" class="hidden" (change)="onImageSelected($event, c)" />
+            </label>
+            <div class="min-w-0 flex-1">
+              <p class="truncate font-display text-base font-semibold text-charcoal-900">{{ c.name }}</p>
+              <p class="text-xs text-charcoal-400">{{ c.productCount }} products • order {{ c.displayOrder }}</p>
+            </div>
+          </div>
+          @if (c.description) {
+            <p class="line-clamp-2 text-xs text-charcoal-500">{{ c.description }}</p>
+          }
+          <div class="mt-4 flex items-center justify-between">
+            <button type="button" (click)="toggleStatus(c)" class="rounded-full px-2.5 py-1 text-xs font-semibold" [class]="c.active ? 'bg-forest-100 text-forest-700' : 'bg-charcoal-100 text-charcoal-500'">
+              {{ c.active ? 'Active' : 'Inactive' }}
+            </button>
+            <div class="flex gap-3 text-xs font-semibold">
+              <button type="button" (click)="openEdit(c)" class="text-forest-700 hover:underline">Edit</button>
+              <button type="button" (click)="remove(c)" class="text-red-600 hover:underline">Delete</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (formOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-charcoal-900/50" (click)="formOpen.set(false)"></div>
+      <div class="relative w-full max-w-md rounded-2xl bg-white p-6">
+        <h2 class="mb-4 font-display text-lg font-semibold text-charcoal-900">{{ editingId() ? 'Edit Category' : 'Add Category' }}</h2>
+        <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
+          <div>
+            <label for="c-name" class="form-label">Name</label>
+            <input id="c-name" type="text" formControlName="name" class="form-input" />
+          </div>
+          <div>
+            <label for="c-slug" class="form-label">Slug (auto-generated if blank)</label>
+            <input id="c-slug" type="text" formControlName="slug" class="form-input" />
+          </div>
+          <div>
+            <label for="c-desc" class="form-label">Description</label>
+            <textarea id="c-desc" formControlName="description" rows="3" class="form-input"></textarea>
+          </div>
+          <div>
+            <label for="c-order" class="form-label">Display Order</label>
+            <input id="c-order" type="number" formControlName="displayOrder" class="form-input" />
+          </div>
+          <label class="flex items-center gap-2 text-sm text-charcoal-700">
+            <input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-charcoal-300 text-forest-700" /> Active
+          </label>
+          <div class="flex gap-3 pt-2">
+            <button type="button" (click)="formOpen.set(false)" class="flex-1 rounded-full border border-charcoal-200 py-3 text-sm font-semibold text-charcoal-700">Cancel</button>
+            <button type="submit" [disabled]="saving()" class="flex-1 rounded-full bg-forest-700 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+              {{ saving() ? 'Saving…' : 'Save' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,245 @@
+<!-- Hero -->
+@if (content(); as c) {
+  <section class="relative overflow-hidden bg-gradient-to-b from-beige-100 via-cream to-cream">
+    <div class="container-vitalora grid grid-cols-1 items-center gap-10 py-14 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:py-28">
+      <div class="order-2 lg:order-1">
+        <span class="inline-block rounded-full bg-forest-100 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-forest-700">
+          Science-Backed Wellness
+        </span>
+        <h1 class="mt-5 font-display text-4xl font-semibold leading-[1.1] text-charcoal-900 sm:text-5xl lg:text-[3.4rem]">
+          {{ c.hero.title }}
+        </h1>
+        <p class="mt-5 max-w-lg text-base leading-relaxed text-charcoal-500 sm:text-lg">
+          {{ c.hero.subtitle }}
+        </p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <a [routerLink]="c.hero.primaryCtaLink" class="rounded-full bg-forest-700 px-7 py-3.5 text-center text-sm font-semibold text-white shadow-soft transition hover:bg-forest-800">
+            {{ c.hero.primaryCtaText }}
+          </a>
+          <a [routerLink]="c.hero.secondaryCtaLink" class="rounded-full border border-charcoal-200 bg-white px-7 py-3.5 text-center text-sm font-semibold text-charcoal-800 transition hover:border-forest-300 hover:text-forest-700">
+            {{ c.hero.secondaryCtaText }}
+          </a>
+        </div>
+        <div class="mt-10 flex items-center gap-6 text-sm text-charcoal-500">
+          <div class="flex items-center gap-2">
+            <app-star-rating [rating]="4.8" [size]="16" />
+            <span>4.8/5 from 1,200+ customers</span>
+          </div>
+        </div>
+      </div>
+      <div class="order-1 lg:order-2">
+        <div class="relative mx-auto aspect-square max-w-md overflow-hidden rounded-[2.5rem] bg-beige-200 shadow-lift sm:max-w-lg">
+          <img [src]="c.hero.image" alt="VITALORA premium supplements" class="h-full w-full object-cover" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USP -->
+  <section class="border-y border-charcoal-100 bg-white">
+    <div class="container-vitalora grid grid-cols-2 gap-6 py-10 sm:grid-cols-4 sm:gap-4">
+      @for (item of c.usp.items; track item.title) {
+        <div class="flex flex-col items-center gap-2 text-center">
+          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-beige-100 text-forest-700">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path [attr.d]="uspIconPath(item.icon)" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold text-charcoal-900">{{ item.title }}</h3>
+          <p class="hidden text-xs leading-relaxed text-charcoal-500 sm:block">{{ item.description }}</p>
+        </div>
+      }
+    </div>
+  </section>
+}
+
+<!-- Featured Products -->
+<section class="py-16 sm:py-20">
+  <div class="container-vitalora">
+    <div class="mb-10 flex items-end justify-between">
+      <div>
+        <span class="text-xs font-semibold uppercase tracking-wider text-forest-600">Curated For You</span>
+        <h2 class="mt-1 font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">Featured Products</h2>
+      </div>
+      <a routerLink="/products" class="hidden text-sm font-semibold text-forest-700 hover:underline sm:inline">View All →</a>
+    </div>
+
+    @if (loading()) {
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="aspect-[3/4.2] skeleton rounded-2xl"></div>
+        }
+      </div>
+    } @else {
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
+        @for (product of featured(); track product.id) {
+          <app-product-card [product]="product" />
+        }
+      </div>
+    }
+    <a routerLink="/products" class="mt-8 block text-center text-sm font-semibold text-forest-700 hover:underline sm:hidden">View All Products →</a>
+  </div>
+</section>
+
+<!-- Shop By Goal -->
+<section class="bg-beige-50 py-16 sm:py-20">
+  <div class="container-vitalora">
+    <div class="mb-10 text-center">
+      <span class="text-xs font-semibold uppercase tracking-wider text-forest-600">Personalized Wellness</span>
+      <h2 class="mt-1 font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">Shop By Goal</h2>
+    </div>
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      @for (category of categories(); track category.id) {
+        <a
+          [routerLink]="['/products']"
+          [queryParams]="{ category: category.slug }"
+          class="group flex flex-col items-center gap-3 rounded-2xl bg-white p-5 text-center shadow-soft transition hover:-translate-y-1 hover:shadow-lift"
+        >
+          <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-forest-50">
+            @if (category.imageUrl) {
+              <img [src]="category.imageUrl" [alt]="category.name" loading="lazy" class="h-full w-full object-cover" />
+            }
+          </div>
+          <span class="text-sm font-semibold text-charcoal-800 group-hover:text-forest-700">{{ category.name }}</span>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Why VITALORA -->
+@if (content(); as c) {
+  <section class="py-16 sm:py-20">
+    <div class="container-vitalora">
+      <div class="mb-10 text-center">
+        <h2 class="font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">{{ c.whyVitalora.heading }}</h2>
+      </div>
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        @for (item of c.whyVitalora.items; track item.title) {
+          <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
+            <h3 class="font-display text-base font-semibold text-forest-800">{{ item.title }}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-charcoal-500">{{ item.description }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<!-- Best Sellers -->
+<section class="bg-beige-50 py-16 sm:py-20">
+  <div class="container-vitalora">
+    <div class="mb-10 flex items-end justify-between">
+      <div>
+        <span class="text-xs font-semibold uppercase tracking-wider text-forest-600">Customer Favorites</span>
+        <h2 class="mt-1 font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">Best Sellers</h2>
+      </div>
+      <a routerLink="/products" [queryParams]="{ sort: 'popular' }" class="hidden text-sm font-semibold text-forest-700 hover:underline sm:inline">View All →</a>
+    </div>
+    <div class="scrollbar-none flex gap-4 overflow-x-auto pb-2 sm:gap-6">
+      @for (product of bestSellers(); track product.id) {
+        <div class="w-[46%] shrink-0 sm:w-[30%] lg:w-[23%]">
+          <app-product-card [product]="product" />
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Featured banners -->
+@if (banners().length > 0) {
+  <section class="py-4">
+    <div class="container-vitalora grid grid-cols-1 gap-5 sm:grid-cols-2">
+      @for (banner of banners(); track banner.id) {
+        <a [routerLink]="banner.ctaLink || '/products'" class="group relative overflow-hidden rounded-3xl">
+          @if (banner.imageUrl) {
+            <img [src]="banner.imageUrl" [alt]="banner.title" loading="lazy" class="h-48 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-56" />
+          } @else {
+            <div class="h-48 w-full bg-forest-800 sm:h-56"></div>
+          }
+          <div class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-charcoal-900/70 via-charcoal-900/10 to-transparent p-6">
+            <h3 class="font-display text-xl font-semibold text-white">{{ banner.title }}</h3>
+            @if (banner.subtitle) {
+              <p class="mt-1 text-sm text-beige-100/90">{{ banner.subtitle }}</p>
+            }
+            @if (banner.ctaText) {
+              <span class="mt-3 inline-flex w-fit items-center gap-1 text-sm font-semibold text-white underline-offset-4 group-hover:underline">
+                {{ banner.ctaText }} →
+              </span>
+            }
+          </div>
+        </a>
+      }
+    </div>
+  </section>
+}
+
+<!-- Testimonials -->
+@if (testimonials().length > 0) {
+  <section class="py-16 sm:py-20">
+    <div class="container-vitalora">
+      <div class="mb-10 text-center">
+        <span class="text-xs font-semibold uppercase tracking-wider text-forest-600">Real Stories</span>
+        <h2 class="mt-1 font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">What Our Customers Say</h2>
+      </div>
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        @for (t of testimonials(); track t.customerName + t.productName) {
+          <div class="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-soft ring-1 ring-charcoal-100/60">
+            <app-star-rating [rating]="t.rating" [size]="14" />
+            <p class="text-sm leading-relaxed text-charcoal-600">"{{ t.comment }}"</p>
+            <div class="mt-auto flex items-center gap-3 pt-2">
+              <div class="flex h-9 w-9 items-center justify-center rounded-full bg-forest-100 text-sm font-semibold text-forest-700">
+                {{ t.customerName.charAt(0) }}
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-charcoal-900">{{ t.customerName }}</p>
+                <p class="text-xs text-charcoal-400">{{ t.productName }}</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<!-- Promo Banner -->
+@if (content(); as c) {
+  <section class="py-4">
+    <div class="container-vitalora">
+      <div class="relative overflow-hidden rounded-3xl bg-forest-800 px-6 py-14 text-center sm:py-20">
+        <div class="absolute -left-10 -top-10 h-52 w-52 rounded-full bg-forest-700/50 blur-3xl"></div>
+        <div class="absolute -bottom-10 -right-10 h-52 w-52 rounded-full bg-beige-500/20 blur-3xl"></div>
+        <div class="relative">
+          <h2 class="font-display text-2xl font-semibold text-white sm:text-4xl">{{ c.promoBanner.title }}</h2>
+          <p class="mt-3 text-lg font-medium text-beige-200">{{ c.promoBanner.subtitle }}</p>
+          <a [routerLink]="c.promoBanner.ctaLink" class="mt-7 inline-block rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-forest-800 transition hover:bg-beige-100">
+            {{ c.promoBanner.ctaText }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="py-16 sm:py-20">
+    <div class="container-vitalora max-w-xl text-center">
+      <h2 class="font-display text-2xl font-semibold text-charcoal-900">{{ c.newsletter.heading }}</h2>
+      <p class="mt-2 text-charcoal-500">{{ c.newsletter.subtitle }}</p>
+      <form (ngSubmit)="subscribeNewsletter()" class="mx-auto mt-6 flex max-w-md flex-col gap-3 sm:flex-row">
+        <input
+          type="email"
+          required
+          [ngModel]="newsletterEmail()"
+          (ngModelChange)="newsletterEmail.set($event)"
+          name="email"
+          placeholder="Enter your email"
+          class="flex-1 rounded-full border border-charcoal-200 bg-white px-5 py-3 text-sm outline-none focus:border-forest-400"
+        />
+        <button type="submit" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-forest-800">
+          Subscribe
+        </button>
+      </form>
+    </div>
+  </section>
+}

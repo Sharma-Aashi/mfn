@@ -1,0 +1,145 @@
+<div class="mx-auto max-w-4xl">
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <a routerLink="/admin/products" class="text-xs font-semibold text-forest-700 hover:underline">← Back to Products</a>
+      <h1 class="mt-1 font-display text-xl font-semibold text-charcoal-900">{{ isEdit ? 'Edit Product' : 'New Product' }}</h1>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="save()" class="space-y-6">
+    <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+      <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Basic Information</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label for="name" class="form-label">Product Name</label>
+          <input id="name" type="text" formControlName="name" class="form-input" />
+        </div>
+        <div>
+          <label for="slug" class="form-label">Slug (auto-generated if blank)</label>
+          <input id="slug" type="text" formControlName="slug" class="form-input" />
+        </div>
+        <div>
+          <label for="sku" class="form-label">SKU</label>
+          <input id="sku" type="text" formControlName="sku" class="form-input" />
+        </div>
+        <div class="sm:col-span-2">
+          <label for="shortDescription" class="form-label">Short Description</label>
+          <input id="shortDescription" type="text" formControlName="shortDescription" class="form-input" />
+        </div>
+        <div class="sm:col-span-2">
+          <label for="tags" class="form-label">Tags (comma-separated)</label>
+          <input id="tags" type="text" formControlName="tags" class="form-input" />
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+      <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Content Details</h2>
+      <div class="space-y-4">
+        <div>
+          <label for="description" class="form-label">Description</label>
+          <textarea id="description" formControlName="description" rows="3" class="form-input"></textarea>
+        </div>
+        <div>
+          <label for="benefits" class="form-label">Benefits (one per line)</label>
+          <textarea id="benefits" formControlName="benefits" rows="3" class="form-input"></textarea>
+        </div>
+        <div>
+          <label for="ingredients" class="form-label">Ingredients</label>
+          <textarea id="ingredients" formControlName="ingredients" rows="2" class="form-input"></textarea>
+        </div>
+        <div>
+          <label for="nutritionalInfo" class="form-label">Nutritional Information</label>
+          <textarea id="nutritionalInfo" formControlName="nutritionalInfo" rows="2" class="form-input"></textarea>
+        </div>
+        <div>
+          <label for="usageInstructions" class="form-label">Usage Instructions</label>
+          <textarea id="usageInstructions" formControlName="usageInstructions" rows="2" class="form-input"></textarea>
+        </div>
+        <div>
+          <label for="warnings" class="form-label">Warnings / Disclaimer</label>
+          <textarea id="warnings" formControlName="warnings" rows="2" class="form-input"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+      <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Pricing &amp; Inventory</h2>
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div>
+          <label for="price" class="form-label">Price (₹)</label>
+          <input id="price" type="number" min="0" step="0.01" formControlName="price" class="form-input" />
+        </div>
+        <div>
+          <label for="salePrice" class="form-label">Sale Price (₹)</label>
+          <input id="salePrice" type="number" min="0" step="0.01" formControlName="salePrice" class="form-input" />
+        </div>
+        <div>
+          <label for="stockQuantity" class="form-label">Stock Quantity</label>
+          <input id="stockQuantity" type="number" min="0" formControlName="stockQuantity" class="form-input" />
+        </div>
+        <div>
+          <label for="lowStockThreshold" class="form-label">Low Stock Threshold</label>
+          <input id="lowStockThreshold" type="number" min="0" formControlName="lowStockThreshold" class="form-input" />
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+      <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Categories &amp; Status</h2>
+      <div class="mb-4 flex flex-wrap gap-2">
+        @for (c of categories(); track c.id) {
+          <button
+            type="button"
+            (click)="toggleCategory(c.id)"
+            class="rounded-full border px-3.5 py-1.5 text-sm font-medium transition"
+            [class]="isCategorySelected(c.id) ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-200 text-charcoal-600'"
+          >
+            {{ c.name }}
+          </button>
+        }
+      </div>
+      <div class="flex flex-wrap gap-6">
+        <label class="flex items-center gap-2 text-sm text-charcoal-700"><input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-charcoal-300 text-forest-700" /> Active</label>
+        <label class="flex items-center gap-2 text-sm text-charcoal-700"><input type="checkbox" formControlName="featured" class="h-4 w-4 rounded border-charcoal-300 text-forest-700" /> Featured</label>
+        <label class="flex items-center gap-2 text-sm text-charcoal-700"><input type="checkbox" formControlName="bestSeller" class="h-4 w-4 rounded border-charcoal-300 text-forest-700" /> Best Seller</label>
+        <label class="flex items-center gap-2 text-sm text-charcoal-700"><input type="checkbox" formControlName="newArrival" class="h-4 w-4 rounded border-charcoal-300 text-forest-700" /> New Arrival</label>
+      </div>
+    </section>
+
+    @if (isEdit) {
+      <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Product Images</h2>
+        <div class="flex flex-wrap gap-3">
+          @for (img of product()?.images; track img.id) {
+            <div class="group relative h-24 w-24 overflow-hidden rounded-xl bg-beige-100">
+              <img [src]="img.imageUrl" [alt]="img.altText || 'Product image'" class="h-full w-full object-cover" />
+              @if (img.primary) {
+                <span class="absolute left-1 top-1 rounded-full bg-forest-700 px-1.5 py-0.5 text-[9px] font-bold text-white">MAIN</span>
+              }
+              <button type="button" (click)="removeImage(img.id)" class="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-red-600 opacity-0 transition group-hover:opacity-100" aria-label="Remove image">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </div>
+          }
+          <label class="flex h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-charcoal-200 text-charcoal-400 hover:border-forest-400 hover:text-forest-600">
+            @if (uploadingImage()) {
+              <span class="text-xs">Uploading…</span>
+            } @else {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14" /></svg>
+              <span class="text-xs">Add Image</span>
+            }
+            <input type="file" accept="image/*" class="hidden" (change)="onImageSelected($event, (product()?.images?.length ?? 0) === 0)" />
+          </label>
+        </div>
+      </section>
+    }
+
+    <div class="flex justify-end gap-3">
+      <a routerLink="/admin/products" class="rounded-full border border-charcoal-200 px-6 py-3 text-sm font-semibold text-charcoal-700">Cancel</a>
+      <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+        {{ saving() ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Product' }}
+      </button>
+    </div>
+  </form>
+</div>

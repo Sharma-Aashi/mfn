@@ -1,0 +1,15 @@
+@if (!isChromeless()) {
+  <app-header />
+}
+
+<main class="min-h-screen">
+  <router-outlet />
+</main>
+
+@if (!isChromeless()) {
+  <app-footer />
+}
+
+<app-toast-container />
+<app-confirm-dialog />
+<app-quick-view-modal />

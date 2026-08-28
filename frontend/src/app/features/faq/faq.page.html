@@ -1,0 +1,62 @@
+<div class="container-vitalora max-w-3xl py-12 sm:py-16">
+  <div class="mb-8 text-center">
+    <span class="text-xs font-semibold uppercase tracking-wider text-forest-600">Support</span>
+    <h1 class="mt-2 font-display text-3xl font-semibold text-charcoal-900 sm:text-4xl">Frequently Asked Questions</h1>
+  </div>
+
+  <input
+    type="search"
+    [(ngModel)]="search"
+    (ngModelChange)="onSearchChange()"
+    placeholder="Search FAQs…"
+    class="w-full rounded-full border border-charcoal-200 bg-white px-5 py-3.5 text-sm outline-none focus:border-forest-400"
+  />
+
+  <div class="mt-5 flex flex-wrap gap-2">
+    @for (c of categories; track c.value) {
+      <button
+        type="button"
+        (click)="setCategory(c.value)"
+        class="rounded-full border px-4 py-1.5 text-sm font-medium transition"
+        [class]="category === c.value ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-200 text-charcoal-600 hover:border-forest-300'"
+      >
+        {{ c.label }}
+      </button>
+    }
+  </div>
+
+  <div class="mt-8">
+    @if (loading()) {
+      <div class="space-y-3">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="h-14 skeleton rounded-xl"></div>
+        }
+      </div>
+    } @else if (faqs().length === 0) {
+      <app-empty-state title="No FAQs found" description="Try a different search term or browse another category.">
+        <svg icon width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 2-3 4M12 17h.01"/></svg>
+      </app-empty-state>
+    } @else {
+      <div class="divide-y divide-charcoal-100 rounded-2xl border border-charcoal-100 bg-white">
+        @for (faq of faqs(); track faq.id) {
+          <div>
+            <button type="button" (click)="toggle(faq.id)" class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left" [attr.aria-expanded]="isOpen(faq.id)">
+              <span class="text-sm font-semibold text-charcoal-900 sm:text-base">{{ faq.question }}</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 text-charcoal-400 transition-transform" [class.rotate-180]="isOpen(faq.id)">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            @if (isOpen(faq.id)) {
+              <p class="whitespace-pre-line px-5 pb-4 text-sm leading-relaxed text-charcoal-600">{{ faq.answer }}</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="mt-10 rounded-2xl bg-beige-50 p-6 text-center">
+    <p class="text-sm text-charcoal-600">Still have questions?</p>
+    <a routerLink="/contact" class="mt-2 inline-block font-semibold text-forest-700 hover:underline">Contact our support team →</a>
+  </div>
+</div>

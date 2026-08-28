@@ -1,0 +1,41 @@
+# ---- Java / Maven / Spring Boot ----
+backend/target/
+backend/uploads/
+*.class
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
+backend/HELP.md
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+
+# ---- Node / Angular ----
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/npm-debug.log*
+frontend/*.tsbuildinfo
+
+# ---- Env / secrets ----
+.env
+.env.local
+**/application-local.yml
+**/*.env
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ---- Logs ----
+*.log
+logs/
+
+# ---- Local PostgreSQL dev instance (portable binaries, not part of the app) ----
+.pgtool/
+
+# ---- Claude Code session housekeeping ----
+.claude/

@@ -1,0 +1,52 @@
+<div class="space-y-8">
+  <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
+    <h2 class="font-display text-lg font-semibold text-charcoal-900">Profile Information</h2>
+    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="mt-5 max-w-md space-y-4">
+      <div>
+        <label for="fullName" class="form-label">Full Name</label>
+        <input id="fullName" type="text" formControlName="fullName" class="form-input" />
+        @if (profileForm.get('fullName')?.invalid && profileForm.get('fullName')?.touched) {
+          <p class="form-error">Full name is required.</p>
+        }
+      </div>
+      <div>
+        <label for="email" class="form-label">Email</label>
+        <input id="email" type="email" [value]="authService.currentUser()?.email" disabled class="form-input" />
+      </div>
+      <div>
+        <label for="phone" class="form-label">Phone</label>
+        <input id="phone" type="tel" formControlName="phone" class="form-input" />
+      </div>
+      <button type="submit" [disabled]="savingProfile()" class="rounded-full bg-forest-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+        {{ savingProfile() ? 'Saving…' : 'Save Changes' }}
+      </button>
+    </form>
+  </div>
+
+  <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
+    <h2 class="font-display text-lg font-semibold text-charcoal-900">Change Password</h2>
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="mt-5 max-w-md space-y-4">
+      <div>
+        <label for="currentPassword" class="form-label">Current Password</label>
+        <input id="currentPassword" type="password" formControlName="currentPassword" autocomplete="current-password" class="form-input" />
+      </div>
+      <div>
+        <label for="newPassword" class="form-label">New Password</label>
+        <input id="newPassword" type="password" formControlName="newPassword" autocomplete="new-password" class="form-input" />
+        @if (passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched) {
+          <p class="form-error">Password must be at least 8 characters.</p>
+        }
+      </div>
+      <div>
+        <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+        <input id="confirmNewPassword" type="password" formControlName="confirmNewPassword" autocomplete="new-password" class="form-input" />
+        @if (passwordForm.hasError('mismatch') && passwordForm.get('confirmNewPassword')?.touched) {
+          <p class="form-error">Passwords do not match.</p>
+        }
+      </div>
+      <button type="submit" [disabled]="savingPassword()" class="rounded-full bg-forest-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+        {{ savingPassword() ? 'Updating…' : 'Update Password' }}
+      </button>
+    </form>
+  </div>
+</div>
