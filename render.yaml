@@ -41,10 +41,7 @@ services:
         value: admin@vitalora.com
       - key: ADMIN_DEFAULT_PASSWORD
         generateValue: true
-      # Set this to your actual cPanel storefront domain after the first deploy,
-      # e.g. https://www.yourdomain.com (no trailing slash). Multiple origins can
-      # be comma-separated.
       - key: APP_CORS_ORIGINS
-        value: https://CHANGE-ME.example.com
+        value: https://musclefreaknutrition.in,https://www.musclefreaknutrition.in
       - key: FRONTEND_BASE_URL
-        value: https://CHANGE-ME.example.com
+        value: https://musclefreaknutrition.in

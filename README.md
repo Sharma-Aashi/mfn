@@ -79,7 +79,7 @@ Classic shared hosting (cPanel/FTP-only plans) can't run a JVM process or Postgr
 2. In Render: **New → Blueprint**, point it at the repo. It reads `render.yaml` at the repo root and provisions both the `vitalora-db` Postgres instance and the `vitalora-api` web service (built from `backend/Dockerfile`) automatically, including a generated `JWT_SECRET` and `ADMIN_DEFAULT_PASSWORD`.
 3. Once deployed, open the **vitalora-api** service → *Environment* and:
    - Note the generated `ADMIN_DEFAULT_PASSWORD` value (Render generated it; it's not the dev default in this README).
-   - Set `APP_CORS_ORIGINS` and `FRONTEND_BASE_URL` to your actual cPanel domain, e.g. `https://www.yourdomain.com` (placeholder values are committed — must be changed for login/checkout to work cross-origin).
+   - `APP_CORS_ORIGINS`/`FRONTEND_BASE_URL` are already set to `musclefreaknutrition.in` in `render.yaml` — only revisit these if the domain changes.
 4. Confirm the service's public URL (Render shows it on the service page — `vitalora-api` is first-come-first-served across all of Render, so yours may differ from the guess already baked into the frontend).
 
 ### 2. Frontend → cPanel
