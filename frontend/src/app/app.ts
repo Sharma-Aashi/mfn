@@ -8,6 +8,7 @@ import { ToastContainerComponent } from './shared/components/toast/toast-contain
 import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 import { QuickViewModalComponent } from './shared/components/quick-view-modal/quick-view-modal.component';
 import { CartService } from './core/services/cart.service';
+import { SiteSettingsService } from './core/services/site-settings.service';
 import { WishlistService } from './core/services/wishlist.service';
 
 @Component({
@@ -27,6 +28,7 @@ export class App {
   private readonly router = inject(Router);
   private readonly cartService = inject(CartService);
   private readonly wishlistService = inject(WishlistService);
+  private readonly siteSettings = inject(SiteSettingsService);
 
   private readonly url = toSignal(
     this.router.events.pipe(
@@ -42,6 +44,7 @@ export class App {
   });
 
   constructor() {
+    this.siteSettings.load();
     this.cartService.refresh();
     this.wishlistService.refresh();
   }

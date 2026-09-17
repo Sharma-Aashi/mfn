@@ -8,11 +8,12 @@ import { ConfirmService } from '../../../../core/services/confirm.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { SeoService } from '../../../../core/services/seo.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { MediaUrlPipe } from '../../../../core/pipes/media-url.pipe';
 
 @Component({
   selector: 'app-admin-product-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [MediaUrlPipe, ReactiveFormsModule, RouterLink],
   templateUrl: './admin-product-form.page.html',
 })
 export class AdminProductFormPage {
@@ -147,6 +148,35 @@ export class AdminProductFormPage {
         input.value = '';
       },
       error: () => this.uploadingImage.set(false),
+    });
+  }
+
+  protected moveImage(index: number, delta: -1 | 1): void {
+    const id = this.productId();
+    const images = this.product()?.images;
+    if (!id || !images) return;
+    const target = index + delta;
+    if (target < 0 || target >= images.length) return;
+    const ids = images.map((img) => img.id);
+    [ids[index], ids[target]] = [ids[target], ids[index]];
+    this.productService.reorderImages(id, ids).subscribe((p) => this.product.set(p));
+  }
+
+  protected makePrimary(imageId: number): void {
+    const id = this.productId();
+    if (!id) return;
+    this.productService.updateImage(id, imageId, { primary: true }).subscribe((p) => {
+      this.product.set(p);
+      this.toast.success('Main image updated.');
+    });
+  }
+
+  protected saveAltText(imageId: number, altText: string, current: string | null): void {
+    const id = this.productId();
+    if (!id || altText.trim() === (current ?? '').trim()) return;
+    this.productService.updateImage(id, imageId, { altText }).subscribe((p) => {
+      this.product.set(p);
+      this.toast.success('Image description saved.');
     });
   }
 

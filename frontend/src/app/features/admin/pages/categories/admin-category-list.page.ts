@@ -5,11 +5,12 @@ import { CategoryService } from '../../../../core/services/category.service';
 import { ConfirmService } from '../../../../core/services/confirm.service';
 import { SeoService } from '../../../../core/services/seo.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { MediaUrlPipe } from '../../../../core/pipes/media-url.pipe';
 
 @Component({
   selector: 'app-admin-category-list',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [MediaUrlPipe, ReactiveFormsModule],
   templateUrl: './admin-category-list.page.html',
 })
 export class AdminCategoryListPage {

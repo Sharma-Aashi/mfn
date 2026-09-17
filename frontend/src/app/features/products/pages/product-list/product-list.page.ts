@@ -50,7 +50,7 @@ export class ProductListPage {
   protected page = 0;
 
   constructor() {
-    this.seo.update('Shop All Supplements', 'Browse the full VITALORA range of premium, science-backed health and wellness supplements.');
+    this.seo.update('Shop All Supplements', 'Browse our full range of premium, science-backed health and wellness supplements.');
     this.categoryService.getAllActive().subscribe((c) => this.categories.set(c));
 
     this.route.queryParamMap.subscribe((params) => {

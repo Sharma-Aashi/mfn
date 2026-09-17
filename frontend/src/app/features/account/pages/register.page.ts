@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { SiteSettingsService } from '../../../core/services/site-settings.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
 
 function passwordsMatch(control: AbstractControl): ValidationErrors | null {
@@ -24,6 +25,7 @@ export class RegisterPage {
   private readonly cartService = inject(CartService);
   private readonly wishlistService = inject(WishlistService);
   private readonly router = inject(Router);
+  protected readonly brand = inject(SiteSettingsService).brand;
 
   protected readonly loading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);

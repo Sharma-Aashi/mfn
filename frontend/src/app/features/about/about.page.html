@@ -13,9 +13,11 @@
         <h2 class="font-display text-2xl font-semibold text-charcoal-900">{{ c.story.heading }}</h2>
         <p class="mt-4 whitespace-pre-line leading-relaxed text-charcoal-600">{{ c.story.body }}</p>
       </div>
-      <div class="aspect-[4/3] overflow-hidden rounded-3xl bg-beige-200">
-        <img src="/assets/brand/about-story.svg" alt="VITALORA formulation process" class="h-full w-full object-cover" />
-      </div>
+      @if (c.storyImage?.url) {
+        <div class="aspect-[4/3] overflow-hidden rounded-3xl bg-beige-200">
+          <img [src]="c.storyImage!.url | mediaUrl" [alt]="c.story.heading" class="h-full w-full object-cover" />
+        </div>
+      }
     </div>
   </section>
 
@@ -67,7 +69,7 @@
     <div class="container-vitalora">
       <h2 class="font-display text-2xl font-semibold text-charcoal-900">Ready to start your wellness journey?</h2>
       <a routerLink="/products" class="mt-6 inline-block rounded-full bg-forest-700 px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-forest-800">
-        Shop VITALORA
+        Shop {{ brand().name }}
       </a>
     </div>
   </section>

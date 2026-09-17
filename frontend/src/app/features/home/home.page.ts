@@ -12,6 +12,7 @@ import { SeoService } from '../../core/services/seo.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { StarRatingComponent } from '../../shared/components/star-rating/star-rating.component';
+import { MediaUrlPipe } from '../../core/pipes/media-url.pipe';
 
 interface Testimonial {
   customerName: string;
@@ -30,7 +31,7 @@ const USP_ICONS: Record<string, string> = {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, FormsModule, ProductCardComponent, StarRatingComponent],
+  imports: [MediaUrlPipe, RouterLink, FormsModule, ProductCardComponent, StarRatingComponent],
   templateUrl: './home.page.html',
 })
 export class HomePage {
@@ -52,7 +53,7 @@ export class HomePage {
 
   constructor() {
     this.seo.update(
-      'Better Health. Better Every Day.',
+      '',
       'Premium, thoughtfully formulated supplements designed to support your energy, immunity, wellness and active lifestyle.',
     );
     this.load();

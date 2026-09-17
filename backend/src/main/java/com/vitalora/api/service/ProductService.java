@@ -2,6 +2,7 @@ package com.vitalora.api.service;
 
 import com.vitalora.api.dto.common.PageResponse;
 import com.vitalora.api.dto.product.ProductImageOrderRequest;
+import com.vitalora.api.dto.product.ProductImageUpdateRequest;
 import com.vitalora.api.dto.product.ProductRequest;
 import com.vitalora.api.dto.product.ProductResponse;
 import com.vitalora.api.dto.product.ProductSummaryResponse;
@@ -44,4 +45,6 @@ public interface ProductService {
     void deleteImage(Long productId, Long imageId);
 
     ProductResponse reorderImages(Long productId, ProductImageOrderRequest request);
+
+    ProductResponse updateImage(Long productId, Long imageId, ProductImageUpdateRequest request);
 }

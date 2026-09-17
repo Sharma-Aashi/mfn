@@ -3,31 +3,23 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
+import { SiteSettingsService } from '../../../core/services/site-settings.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
-
-interface NavLink {
-  label: string;
-  path: string;
-}
+import { BrandLogoComponent } from '../brand-logo/brand-logo.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, FormsModule],
+  imports: [RouterLink, RouterLinkActive, FormsModule, BrandLogoComponent],
   template: `
     <header class="sticky top-0 z-40 border-b border-charcoal-100 bg-cream/95 backdrop-blur">
       <div class="container-vitalora flex h-16 items-center justify-between gap-3 sm:h-20">
-        <a routerLink="/" class="flex shrink-0 items-center gap-2" aria-label="VITALORA home">
-          <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
-            <circle cx="20" cy="20" r="20" fill="#1f3d24" />
-            <path d="M20 30c-6-2-9-7-9-13 0-2 .3-4 1-6 3 1 6 3 8 6 2-3 5-5 8-6 .7 2 1 4 1 6 0 6-3 11-9 13z" fill="#e3d3ab" />
-            <path d="M20 30V15" stroke="#1f3d24" stroke-width="1.4" />
-          </svg>
-          <span class="font-display text-xl font-semibold tracking-wide text-forest-800 sm:text-2xl">VITALORA</span>
+        <a routerLink="/" class="flex shrink-0 items-center" [attr.aria-label]="siteSettings.brand().name + ' home'">
+          <app-brand-logo [size]="30" />
         </a>
 
         <nav class="hidden items-center gap-7 lg:flex">
-          @for (link of navLinks; track link.path) {
+          @for (link of siteSettings.nav().links; track link.path) {
             <a
               [routerLink]="link.path"
               routerLinkActive="text-forest-700"
@@ -133,7 +125,7 @@ interface NavLink {
           </form>
 
           <nav class="flex flex-col gap-1 px-3 py-5">
-            @for (link of navLinks; track link.path) {
+            @for (link of siteSettings.nav().links; track link.path) {
               <a [routerLink]="link.path" (click)="mobileOpen.set(false)" class="rounded-lg px-3 py-3 text-[15px] font-medium text-charcoal-700 hover:bg-beige-100">{{ link.label }}</a>
             }
             <a routerLink="/account/wishlist" (click)="mobileOpen.set(false)" class="rounded-lg px-3 py-3 text-[15px] font-medium text-charcoal-700 hover:bg-beige-100">Wishlist</a>
@@ -190,14 +182,7 @@ export class HeaderComponent {
   private readonly wishlistService = inject(WishlistService);
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef);
-
-  protected readonly navLinks: NavLink[] = [
-    { label: 'Home', path: '/' },
-    { label: 'Shop', path: '/products' },
-    { label: 'About', path: '/about' },
-    { label: 'Contact', path: '/contact' },
-    { label: 'FAQ', path: '/faq' },
-  ];
+  protected readonly siteSettings = inject(SiteSettingsService);
 
   protected mobileOpen = signal(false);
   protected searchOpen = signal(false);

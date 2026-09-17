@@ -1,24 +1,32 @@
-<div>
-  <h1 class="mb-6 font-display text-xl font-semibold text-charcoal-900">Website Content</h1>
+<div class="mx-auto max-w-5xl">
+  <div class="mb-6">
+    <h1 class="font-display text-xl font-semibold text-charcoal-900">Website Content</h1>
+    <p class="text-sm text-charcoal-500">Page copy and images. Brand name, logo, menu, footer and shipping rules live in <strong>Site Settings</strong>.</p>
+  </div>
 
   <div class="mb-6 flex flex-wrap gap-2">
-    @for (t of [['home','Homepage'],['about','About Us'],['contact','Contact Us'],['policies','Policies'],['banners','Banners']]; track t[0]) {
+    @for (t of tabs; track t.key) {
       <button
         type="button"
-        (click)="setTab($any(t[0]))"
+        (click)="setTab(t.key)"
         class="rounded-full border px-4 py-1.5 text-sm font-medium transition"
-        [class]="tab() === t[0] ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-200 text-charcoal-600'"
+        [class]="tab() === t.key ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-200 text-charcoal-600 hover:border-forest-300'"
       >
-        {{ t[1] }}
+        {{ t.label }}
       </button>
     }
   </div>
 
+  <!-- ===================================================== HOMEPAGE -->
   @if (tab() === 'home') {
     <form [formGroup]="homeForm" (ngSubmit)="saveHome()" class="space-y-6">
       <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
         <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Hero Section</h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label for="heroEyebrow" class="form-label">Badge Above Headline</label>
+            <input id="heroEyebrow" type="text" formControlName="heroEyebrow" placeholder="e.g. Science-Backed Wellness (leave empty to hide)" class="form-input" />
+          </div>
           <div class="sm:col-span-2">
             <label for="heroTitle" class="form-label">Headline</label>
             <input id="heroTitle" type="text" formControlName="heroTitle" class="form-input" />
@@ -27,21 +35,92 @@
             <label for="heroSubtitle" class="form-label">Subheading</label>
             <textarea id="heroSubtitle" formControlName="heroSubtitle" rows="2" class="form-input"></textarea>
           </div>
-          <div><label for="heroPrimaryCtaText" class="form-label">Primary CTA Text</label><input id="heroPrimaryCtaText" type="text" formControlName="heroPrimaryCtaText" class="form-input" /></div>
-          <div><label for="heroPrimaryCtaLink" class="form-label">Primary CTA Link</label><input id="heroPrimaryCtaLink" type="text" formControlName="heroPrimaryCtaLink" class="form-input" /></div>
-          <div><label for="heroSecondaryCtaText" class="form-label">Secondary CTA Text</label><input id="heroSecondaryCtaText" type="text" formControlName="heroSecondaryCtaText" class="form-input" /></div>
-          <div><label for="heroSecondaryCtaLink" class="form-label">Secondary CTA Link</label><input id="heroSecondaryCtaLink" type="text" formControlName="heroSecondaryCtaLink" class="form-input" /></div>
-          <div class="sm:col-span-2"><label for="heroImage" class="form-label">Hero Image Path</label><input id="heroImage" type="text" formControlName="heroImage" class="form-input" /></div>
+          <div><label for="heroPrimaryCtaText" class="form-label">Primary Button Text</label><input id="heroPrimaryCtaText" type="text" formControlName="heroPrimaryCtaText" class="form-input" /></div>
+          <div><label for="heroPrimaryCtaLink" class="form-label">Primary Button Link</label><input id="heroPrimaryCtaLink" type="text" formControlName="heroPrimaryCtaLink" placeholder="/products" class="form-input" /></div>
+          <div><label for="heroSecondaryCtaText" class="form-label">Secondary Button Text</label><input id="heroSecondaryCtaText" type="text" formControlName="heroSecondaryCtaText" class="form-input" /></div>
+          <div><label for="heroSecondaryCtaLink" class="form-label">Secondary Button Link</label><input id="heroSecondaryCtaLink" type="text" formControlName="heroSecondaryCtaLink" placeholder="/products" class="form-input" /></div>
+          <div class="sm:col-span-2">
+            <app-image-upload-field formControlName="heroImage" label="Hero Image" fieldId="heroImage" hint="Square image, at least 1000×1000px." />
+          </div>
+        </div>
+      </section>
+
+      <!-- USP strip -->
+      <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h2 class="font-display text-base font-semibold text-charcoal-900">Trust / USP Strip</h2>
+            <p class="text-xs text-charcoal-400">The row of promises under the hero (e.g. "Quality Tested"). 4 items look best.</p>
+          </div>
+          <button type="button" (click)="addUspItem()" class="rounded-full border border-charcoal-200 px-4 py-1.5 text-xs font-semibold text-charcoal-700 hover:bg-beige-100">+ Add Item</button>
+        </div>
+        <div formArrayName="uspItems" class="space-y-3">
+          @for (item of uspItems.controls; track item; let i = $index; let last = $last) {
+            <div [formGroupName]="i" class="flex gap-3 rounded-xl bg-beige-50 p-3">
+              <div class="flex flex-col pt-1">
+                <button type="button" (click)="moveItem(uspItems, i, -1)" [disabled]="i === 0" class="text-charcoal-400 hover:text-forest-700 disabled:opacity-20" aria-label="Move up">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 15l-6-6-6 6" /></svg>
+                </button>
+                <button type="button" (click)="moveItem(uspItems, i, 1)" [disabled]="last" class="text-charcoal-400 hover:text-forest-700 disabled:opacity-20" aria-label="Move down">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+                </button>
+              </div>
+              <div class="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
+                <select formControlName="icon" class="form-select" [attr.aria-label]="'Item ' + (i + 1) + ' icon'">
+                  @for (opt of uspIconOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+                <input type="text" formControlName="title" placeholder="Title" [attr.aria-label]="'Item ' + (i + 1) + ' title'" class="form-input" />
+                <input type="text" formControlName="description" placeholder="Short description" [attr.aria-label]="'Item ' + (i + 1) + ' description'" class="form-input" />
+              </div>
+              <button type="button" (click)="uspItems.removeAt(i)" class="self-center px-1 text-xs font-semibold text-red-600 hover:underline">Remove</button>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Why VITALORA -->
+      <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h2 class="font-display text-base font-semibold text-charcoal-900">"Why Us" Section</h2>
+            <p class="text-xs text-charcoal-400">Heading and the reasons shown as cards on the homepage.</p>
+          </div>
+          <button type="button" (click)="addWhyItem()" class="rounded-full border border-charcoal-200 px-4 py-1.5 text-xs font-semibold text-charcoal-700 hover:bg-beige-100">+ Add Reason</button>
+        </div>
+        <div class="mb-4">
+          <label for="whyHeading" class="form-label">Section Heading</label>
+          <input id="whyHeading" type="text" formControlName="whyHeading" class="form-input" />
+        </div>
+        <div formArrayName="whyItems" class="space-y-3">
+          @for (item of whyItems.controls; track item; let i = $index; let last = $last) {
+            <div [formGroupName]="i" class="flex gap-3 rounded-xl bg-beige-50 p-3">
+              <div class="flex flex-col pt-1">
+                <button type="button" (click)="moveItem(whyItems, i, -1)" [disabled]="i === 0" class="text-charcoal-400 hover:text-forest-700 disabled:opacity-20" aria-label="Move up">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 15l-6-6-6 6" /></svg>
+                </button>
+                <button type="button" (click)="moveItem(whyItems, i, 1)" [disabled]="last" class="text-charcoal-400 hover:text-forest-700 disabled:opacity-20" aria-label="Move down">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+                </button>
+              </div>
+              <div class="grid min-w-0 flex-1 grid-cols-1 gap-2">
+                <input type="text" formControlName="title" placeholder="Title" [attr.aria-label]="'Reason ' + (i + 1) + ' title'" class="form-input" />
+                <textarea formControlName="description" rows="2" placeholder="Description" [attr.aria-label]="'Reason ' + (i + 1) + ' description'" class="form-input"></textarea>
+              </div>
+              <button type="button" (click)="whyItems.removeAt(i)" class="self-center px-1 text-xs font-semibold text-red-600 hover:underline">Remove</button>
+            </div>
+          }
         </div>
       </section>
 
       <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
-        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Promotional Banner</h2>
+        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Promotional Banner (large green block)</h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div><label for="promoTitle" class="form-label">Title</label><input id="promoTitle" type="text" formControlName="promoTitle" class="form-input" /></div>
           <div><label for="promoSubtitle" class="form-label">Subtitle</label><input id="promoSubtitle" type="text" formControlName="promoSubtitle" class="form-input" /></div>
-          <div><label for="promoCtaText" class="form-label">CTA Text</label><input id="promoCtaText" type="text" formControlName="promoCtaText" class="form-input" /></div>
-          <div><label for="promoCtaLink" class="form-label">CTA Link</label><input id="promoCtaLink" type="text" formControlName="promoCtaLink" class="form-input" /></div>
+          <div><label for="promoCtaText" class="form-label">Button Text</label><input id="promoCtaText" type="text" formControlName="promoCtaText" class="form-input" /></div>
+          <div><label for="promoCtaLink" class="form-label">Button Link</label><input id="promoCtaLink" type="text" formControlName="promoCtaLink" class="form-input" /></div>
         </div>
       </section>
 
@@ -53,103 +132,144 @@
         </div>
       </section>
 
-      <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
-        {{ saving() ? 'Saving…' : 'Save Homepage Content' }}
-      </button>
+      <div class="sticky bottom-0 -mx-4 flex justify-end border-t border-charcoal-100 bg-beige-50/95 px-4 py-4 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
+        <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+          {{ saving() ? 'Saving…' : 'Save Homepage' }}
+        </button>
+      </div>
     </form>
   }
 
+  <!-- ===================================================== ABOUT -->
   @if (tab() === 'about') {
     <form [formGroup]="aboutForm" (ngSubmit)="saveAbout()" class="space-y-6">
       <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
-        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Hero</h2>
+        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Page Header</h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div><label for="a-heroHeading" class="form-label">Heading</label><input id="a-heroHeading" type="text" formControlName="heroHeading" class="form-input" /></div>
           <div><label for="a-heroSubtitle" class="form-label">Subtitle</label><input id="a-heroSubtitle" type="text" formControlName="heroSubtitle" class="form-input" /></div>
         </div>
       </section>
+
       <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
         <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Our Story</h2>
-        <label for="storyHeading" class="form-label">Heading</label>
-        <input id="storyHeading" type="text" formControlName="storyHeading" class="form-input mb-3" />
-        <label for="storyBody" class="form-label">Body</label>
-        <textarea id="storyBody" formControlName="storyBody" rows="4" class="form-input"></textarea>
+        <div class="space-y-4">
+          <div><label for="storyHeading" class="form-label">Heading</label><input id="storyHeading" type="text" formControlName="storyHeading" class="form-input" /></div>
+          <div><label for="storyBody" class="form-label">Story</label><textarea id="storyBody" formControlName="storyBody" rows="5" class="form-input"></textarea></div>
+          <app-image-upload-field formControlName="storyImage" label="Story Image" fieldId="storyImage" hint="Landscape, 4:3 ratio works best." />
+        </div>
       </section>
+
       <section class="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
           <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Mission</h2>
-          <input type="text" formControlName="missionHeading" class="form-input mb-3" placeholder="Heading" />
-          <textarea formControlName="missionBody" rows="3" class="form-input" placeholder="Body"></textarea>
+          <label for="missionHeading" class="form-label">Heading</label>
+          <input id="missionHeading" type="text" formControlName="missionHeading" class="form-input mb-3" />
+          <label for="missionBody" class="form-label">Text</label>
+          <textarea id="missionBody" formControlName="missionBody" rows="3" class="form-input"></textarea>
         </div>
         <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
           <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Vision</h2>
-          <input type="text" formControlName="visionHeading" class="form-input mb-3" placeholder="Heading" />
-          <textarea formControlName="visionBody" rows="3" class="form-input" placeholder="Body"></textarea>
+          <label for="visionHeading" class="form-label">Heading</label>
+          <input id="visionHeading" type="text" formControlName="visionHeading" class="form-input mb-3" />
+          <label for="visionBody" class="form-label">Text</label>
+          <textarea id="visionBody" formControlName="visionBody" rows="3" class="form-input"></textarea>
         </div>
         <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
           <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Quality Philosophy</h2>
-          <input type="text" formControlName="qualityHeading" class="form-input mb-3" placeholder="Heading" />
-          <textarea formControlName="qualityBody" rows="3" class="form-input" placeholder="Body"></textarea>
+          <label for="qualityHeading" class="form-label">Heading</label>
+          <input id="qualityHeading" type="text" formControlName="qualityHeading" class="form-input mb-3" />
+          <label for="qualityBody" class="form-label">Text</label>
+          <textarea id="qualityBody" formControlName="qualityBody" rows="3" class="form-input"></textarea>
         </div>
         <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
           <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Ingredient Philosophy</h2>
-          <input type="text" formControlName="ingredientsHeading" class="form-input mb-3" placeholder="Heading" />
-          <textarea formControlName="ingredientsBody" rows="3" class="form-input" placeholder="Body"></textarea>
+          <label for="ingredientsHeading" class="form-label">Heading</label>
+          <input id="ingredientsHeading" type="text" formControlName="ingredientsHeading" class="form-input mb-3" />
+          <label for="ingredientsBody" class="form-label">Text</label>
+          <textarea id="ingredientsBody" formControlName="ingredientsBody" rows="3" class="form-input"></textarea>
         </div>
       </section>
+
       <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
-        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Founder Story</h2>
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <input type="text" formControlName="founderHeading" class="form-input" placeholder="Heading" />
-          <input type="text" formControlName="founderName" class="form-input" placeholder="Founder Name" />
+        <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Founder Note</h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div><label for="founderHeading" class="form-label">Heading</label><input id="founderHeading" type="text" formControlName="founderHeading" class="form-input" /></div>
+          <div><label for="founderName" class="form-label">Signed As</label><input id="founderName" type="text" formControlName="founderName" class="form-input" /></div>
+          <div class="sm:col-span-2"><label for="founderBody" class="form-label">Message</label><textarea id="founderBody" formControlName="founderBody" rows="3" class="form-input"></textarea></div>
         </div>
-        <textarea formControlName="founderBody" rows="3" class="form-input mt-3" placeholder="Founder message"></textarea>
       </section>
-      <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
-        {{ saving() ? 'Saving…' : 'Save About Page Content' }}
-      </button>
+
+      <div class="sticky bottom-0 -mx-4 flex justify-end border-t border-charcoal-100 bg-beige-50/95 px-4 py-4 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
+        <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+          {{ saving() ? 'Saving…' : 'Save About Page' }}
+        </button>
+      </div>
     </form>
   }
 
+  <!-- ===================================================== CONTACT -->
   @if (tab() === 'contact') {
-    <form [formGroup]="contactForm" (ngSubmit)="saveContact()" class="max-w-xl space-y-4 rounded-2xl border border-charcoal-100 bg-white p-6">
+    <form [formGroup]="contactForm" (ngSubmit)="saveContact()" class="max-w-2xl space-y-4 rounded-2xl border border-charcoal-100 bg-white p-6">
       <div><label for="companyName" class="form-label">Company Name</label><input id="companyName" type="text" formControlName="companyName" class="form-input" /></div>
-      <div><label for="c-email" class="form-label">Email</label><input id="c-email" type="email" formControlName="email" class="form-input" /></div>
-      <div><label for="c-phone" class="form-label">Phone</label><input id="c-phone" type="text" formControlName="phone" class="form-input" /></div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div><label for="c-email" class="form-label">Email</label><input id="c-email" type="email" formControlName="email" class="form-input" /></div>
+        <div><label for="c-phone" class="form-label">Phone</label><input id="c-phone" type="text" formControlName="phone" class="form-input" /></div>
+      </div>
       <div><label for="c-address" class="form-label">Address</label><textarea id="c-address" formControlName="address" rows="2" class="form-input"></textarea></div>
       <div><label for="c-hours" class="form-label">Business Hours</label><input id="c-hours" type="text" formControlName="businessHours" class="form-input" /></div>
+      <div>
+        <label for="c-map" class="form-label">Google Maps Embed</label>
+        <textarea id="c-map" formControlName="mapEmbedUrl" rows="3" placeholder="Paste the embed link, or the whole &lt;iframe ...&gt; code" class="form-input font-mono text-xs"></textarea>
+        <p class="mt-1 text-xs text-charcoal-400">Google Maps → your location → Share → <strong>Embed a map</strong> → Copy HTML → paste here. Leave empty to hide the map.</p>
+      </div>
       <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
         {{ saving() ? 'Saving…' : 'Save Contact Info' }}
       </button>
     </form>
   }
 
+  <!-- ===================================================== POLICIES -->
   @if (tab() === 'policies') {
     <form [formGroup]="policiesForm" (ngSubmit)="savePolicies()" class="space-y-6">
-      @for (p of [['privacy','Privacy Policy'],['terms','Terms & Conditions'],['shipping','Shipping Policy'],['refund','Returns & Refunds']]; track p[0]) {
+      @for (p of policyKeys; track p.key) {
         <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
-          <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">{{ p[1] }}</h2>
-          <input type="text" [formControlName]="p[0] + 'Title'" class="form-input mb-3" placeholder="Title" />
-          <textarea [formControlName]="p[0] + 'Body'" rows="5" class="form-input" placeholder="Policy text"></textarea>
+          <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">{{ p.label }}</h2>
+          <label [for]="p.key + 'Title'" class="form-label">Title</label>
+          <input [id]="p.key + 'Title'" type="text" [formControlName]="p.key + 'Title'" class="form-input mb-3" />
+          <label [for]="p.key + 'Body'" class="form-label">Content</label>
+          <textarea [id]="p.key + 'Body'" [formControlName]="p.key + 'Body'" rows="8" class="form-input"></textarea>
         </section>
       }
-      <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
-        {{ saving() ? 'Saving…' : 'Save Policies' }}
-      </button>
+      <div class="sticky bottom-0 -mx-4 flex justify-end border-t border-charcoal-100 bg-beige-50/95 px-4 py-4 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
+        <button type="submit" [disabled]="saving()" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white hover:bg-forest-800 disabled:opacity-60">
+          {{ saving() ? 'Saving…' : 'Save Policies' }}
+        </button>
+      </div>
     </form>
   }
 
+  <!-- ===================================================== BANNERS -->
   @if (tab() === 'banners') {
     <div>
-      <div class="mb-4 flex justify-end">
-        <button type="button" (click)="openNewBanner()" class="rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-800">+ Add Banner</button>
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <p class="text-sm text-charcoal-500">Image cards shown between Best Sellers and Testimonials on the homepage.</p>
+        <button type="button" (click)="openNewBanner()" class="shrink-0 rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-800">+ Add Banner</button>
       </div>
       <div class="space-y-3">
         @for (b of banners(); track b.id) {
-          <div class="flex items-center justify-between rounded-2xl border border-charcoal-100 bg-white p-4">
-            <div>
-              <p class="text-sm font-semibold text-charcoal-900">{{ b.title }}</p>
-              <p class="text-xs text-charcoal-500">{{ b.subtitle }}</p>
+          <div class="flex flex-wrap items-center gap-4 rounded-2xl border border-charcoal-100 bg-white p-4">
+            <div class="h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-forest-800">
+              @if (b.imageUrl) {
+                <img [src]="b.imageUrl | mediaUrl" [alt]="b.title" class="h-full w-full object-cover" />
+              }
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-semibold text-charcoal-900">{{ b.title }}</p>
+              <p class="truncate text-xs text-charcoal-500">{{ b.subtitle }}</p>
+              @if (!b.imageUrl) {
+                <p class="text-xs font-semibold text-amber-700">No image — add one for a better look.</p>
+              }
             </div>
             <div class="flex items-center gap-3">
               <button type="button" (click)="toggleBannerStatus(b)" class="rounded-full px-2.5 py-1 text-xs font-semibold" [class]="b.active ? 'bg-forest-100 text-forest-700' : 'bg-charcoal-100 text-charcoal-500'">
@@ -159,6 +279,8 @@
               <button type="button" (click)="removeBanner(b)" class="text-xs font-semibold text-red-600 hover:underline">Delete</button>
             </div>
           </div>
+        } @empty {
+          <p class="rounded-2xl border border-dashed border-charcoal-200 bg-white p-8 text-center text-sm text-charcoal-500">No banners yet.</p>
         }
       </div>
     </div>
@@ -166,15 +288,20 @@
     @if (bannerFormOpen()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-charcoal-900/50" (click)="bannerFormOpen.set(false)"></div>
-        <div class="relative w-full max-w-md rounded-2xl bg-white p-6">
+        <div class="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6">
           <h2 class="mb-4 font-display text-lg font-semibold text-charcoal-900">{{ editingBannerId() ? 'Edit Banner' : 'Add Banner' }}</h2>
           <form [formGroup]="bannerForm" (ngSubmit)="saveBanner()" class="space-y-4">
+            <app-image-upload-field formControlName="imageUrl" label="Banner Image" fieldId="b-image" folder="banners" hint="Wide image, ~800×300px." />
             <div><label for="b-title" class="form-label">Title</label><input id="b-title" type="text" formControlName="title" class="form-input" /></div>
             <div><label for="b-subtitle" class="form-label">Subtitle</label><input id="b-subtitle" type="text" formControlName="subtitle" class="form-input" /></div>
-            <div><label for="b-ctaText" class="form-label">CTA Text</label><input id="b-ctaText" type="text" formControlName="ctaText" class="form-input" /></div>
-            <div><label for="b-ctaLink" class="form-label">CTA Link</label><input id="b-ctaLink" type="text" formControlName="ctaLink" class="form-input" /></div>
-            <div><label for="b-order" class="form-label">Display Order</label><input id="b-order" type="number" formControlName="displayOrder" class="form-input" /></div>
-            <label class="flex items-center gap-2 text-sm text-charcoal-700"><input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-charcoal-300 text-forest-700" /> Active</label>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label for="b-ctaText" class="form-label">Button Text</label><input id="b-ctaText" type="text" formControlName="ctaText" class="form-input" /></div>
+              <div><label for="b-ctaLink" class="form-label">Button Link</label><input id="b-ctaLink" type="text" formControlName="ctaLink" placeholder="/products" class="form-input" /></div>
+            </div>
+            <div class="grid grid-cols-2 items-end gap-4">
+              <div><label for="b-order" class="form-label">Display Order</label><input id="b-order" type="number" formControlName="displayOrder" class="form-input" /></div>
+              <label class="flex items-center gap-2 pb-3 text-sm text-charcoal-700"><input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-charcoal-300 text-forest-700" /> Active</label>
+            </div>
             <div class="flex gap-3 pt-2">
               <button type="button" (click)="bannerFormOpen.set(false)" class="flex-1 rounded-full border border-charcoal-200 py-3 text-sm font-semibold text-charcoal-700">Cancel</button>
               <button type="submit" class="flex-1 rounded-full bg-forest-700 py-3 text-sm font-semibold text-white hover:bg-forest-800">Save</button>

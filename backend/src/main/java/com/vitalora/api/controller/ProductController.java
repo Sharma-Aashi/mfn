@@ -119,6 +119,12 @@ public class ProductController {
         return ResponseEntity.ok(new MessageResponse("Image removed."));
     }
 
+    @PatchMapping("/{id}/images/{imageId}")
+    public ResponseEntity<ProductResponse> updateImage(@PathVariable Long id, @PathVariable Long imageId,
+                                                         @Valid @RequestBody ProductImageUpdateRequest request) {
+        return ResponseEntity.ok(productService.updateImage(id, imageId, request));
+    }
+
     @PutMapping("/{id}/images/order")
     public ResponseEntity<ProductResponse> reorderImages(@PathVariable Long id,
                                                            @Valid @RequestBody ProductImageOrderRequest request) {

@@ -3,10 +3,12 @@
   <section class="relative overflow-hidden bg-gradient-to-b from-beige-100 via-cream to-cream">
     <div class="container-vitalora grid grid-cols-1 items-center gap-10 py-14 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:py-28">
       <div class="order-2 lg:order-1">
-        <span class="inline-block rounded-full bg-forest-100 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-forest-700">
-          Science-Backed Wellness
-        </span>
-        <h1 class="mt-5 font-display text-4xl font-semibold leading-[1.1] text-charcoal-900 sm:text-5xl lg:text-[3.4rem]">
+        @if (c.hero.eyebrow) {
+          <span class="mb-5 inline-block rounded-full bg-forest-100 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-forest-700">
+            {{ c.hero.eyebrow }}
+          </span>
+        }
+        <h1 class="font-display text-4xl font-semibold leading-[1.1] text-charcoal-900 sm:text-5xl lg:text-[3.4rem]">
           {{ c.hero.title }}
         </h1>
         <p class="mt-5 max-w-lg text-base leading-relaxed text-charcoal-500 sm:text-lg">
@@ -20,17 +22,13 @@
             {{ c.hero.secondaryCtaText }}
           </a>
         </div>
-        <div class="mt-10 flex items-center gap-6 text-sm text-charcoal-500">
-          <div class="flex items-center gap-2">
-            <app-star-rating [rating]="4.8" [size]="16" />
-            <span>4.8/5 from 1,200+ customers</span>
-          </div>
-        </div>
       </div>
       <div class="order-1 lg:order-2">
-        <div class="relative mx-auto aspect-square max-w-md overflow-hidden rounded-[2.5rem] bg-beige-200 shadow-lift sm:max-w-lg">
-          <img [src]="c.hero.image" alt="VITALORA premium supplements" class="h-full w-full object-cover" />
-        </div>
+        @if (c.hero.image) {
+          <div class="relative mx-auto aspect-square max-w-md overflow-hidden rounded-[2.5rem] bg-beige-200 shadow-lift sm:max-w-lg">
+            <img [src]="c.hero.image | mediaUrl" [alt]="c.hero.title" class="h-full w-full object-cover" />
+          </div>
+        }
       </div>
     </div>
   </section>
@@ -97,7 +95,7 @@
         >
           <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-forest-50">
             @if (category.imageUrl) {
-              <img [src]="category.imageUrl" [alt]="category.name" loading="lazy" class="h-full w-full object-cover" />
+              <img [src]="category.imageUrl | mediaUrl" [alt]="category.name" loading="lazy" class="h-full w-full object-cover" />
             }
           </div>
           <span class="text-sm font-semibold text-charcoal-800 group-hover:text-forest-700">{{ category.name }}</span>
@@ -153,7 +151,7 @@
       @for (banner of banners(); track banner.id) {
         <a [routerLink]="banner.ctaLink || '/products'" class="group relative overflow-hidden rounded-3xl">
           @if (banner.imageUrl) {
-            <img [src]="banner.imageUrl" [alt]="banner.title" loading="lazy" class="h-48 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-56" />
+            <img [src]="banner.imageUrl | mediaUrl" [alt]="banner.title" loading="lazy" class="h-48 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-56" />
           } @else {
             <div class="h-48 w-full bg-forest-800 sm:h-56"></div>
           }

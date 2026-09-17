@@ -37,7 +37,7 @@ export class FaqPage {
   protected search = '';
 
   constructor() {
-    inject(SeoService).update('Frequently Asked Questions', 'Answers to common questions about VITALORA products, orders, shipping, returns and more.');
+    inject(SeoService).update('Frequently Asked Questions', 'Answers to common questions about our products, orders, shipping, returns and more.');
     this.load();
     this.search$.pipe(debounceTime(350)).subscribe(() => this.load());
   }

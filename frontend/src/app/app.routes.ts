@@ -7,7 +7,6 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./features/home/home.page').then((m) => m.HomePage),
-    title: 'VITALORA | Better Health. Better Every Day.',
   },
   {
     path: 'products',
@@ -105,6 +104,9 @@ export const routes: Routes = [
       { path: 'reviews', loadComponent: () => import('./features/admin/pages/reviews/admin-reviews.page').then((m) => m.AdminReviewsPage) },
       { path: 'faqs', loadComponent: () => import('./features/admin/pages/faqs/admin-faqs.page').then((m) => m.AdminFaqsPage) },
       { path: 'content', loadComponent: () => import('./features/admin/pages/content/admin-content.page').then((m) => m.AdminContentPage) },
+      { path: 'messages', loadComponent: () => import('./features/admin/pages/messages/admin-messages.page').then((m) => m.AdminMessagesPage) },
+      { path: 'settings', loadComponent: () => import('./features/admin/pages/settings/admin-settings.page').then((m) => m.AdminSettingsPage) },
+      { path: 'account', loadComponent: () => import('./features/admin/pages/account/admin-account.page').then((m) => m.AdminAccountPage) },
     ],
   },
 

@@ -8,11 +8,12 @@ import { ToastService } from '../../../core/services/toast.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { QuantityStepperComponent } from '../quantity-stepper/quantity-stepper.component';
 import { StarRatingComponent } from '../star-rating/star-rating.component';
+import { MediaUrlPipe } from '../../../core/pipes/media-url.pipe';
 
 @Component({
   selector: 'app-quick-view-modal',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, StarRatingComponent, QuantityStepperComponent],
+  imports: [MediaUrlPipe, RouterLink, CurrencyPipe, StarRatingComponent, QuantityStepperComponent],
   template: `
     @if (quickViewService.product(); as product) {
       <div class="fixed inset-0 z-[105] flex items-end justify-center p-0 sm:items-center sm:p-4">
@@ -24,7 +25,7 @@ import { StarRatingComponent } from '../star-rating/star-rating.component';
 
           <div class="aspect-square bg-beige-100 sm:w-2/5">
             @if (product.primaryImageUrl) {
-              <img [src]="product.primaryImageUrl" [alt]="product.name" class="h-full w-full object-cover" />
+              <img [src]="product.primaryImageUrl | mediaUrl" [alt]="product.name" class="h-full w-full object-cover" />
             }
           </div>
 

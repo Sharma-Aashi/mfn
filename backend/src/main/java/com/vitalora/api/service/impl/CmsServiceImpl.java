@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vitalora.api.dto.cms.BannerRequest;
 import com.vitalora.api.dto.cms.BannerResponse;
+import com.vitalora.api.dto.cms.CommerceSettings;
 import com.vitalora.api.entity.Banner;
 import com.vitalora.api.entity.CmsContent;
 import com.vitalora.api.exception.BadRequestException;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,55 @@ public class CmsServiceImpl implements CmsService {
             cmsContentRepository.save(content);
         }
         return getPage(pageKey);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CommerceSettings getCommerceSettings() {
+        CommerceSettings defaults = CommerceSettings.defaults();
+        try {
+            Object raw = cmsContentRepository.findByPageKeyAndSectionKey("site", "commerce")
+                    .map(c -> parseJson(c.getContentJson()))
+                    .orElse(null);
+            if (!(raw instanceof Map<?, ?> map)) {
+                return defaults;
+            }
+            return new CommerceSettings(
+                    toDecimal(map.get("freeShippingThreshold"), defaults.freeShippingThreshold()),
+                    toDecimal(map.get("shippingFee"), defaults.shippingFee()),
+                    toInt(map.get("estimatedDeliveryDays"), defaults.estimatedDeliveryDays()));
+        } catch (Exception e) {
+            log.warn("Falling back to default commerce settings: {}", e.getMessage());
+            return defaults;
+        }
+    }
+
+    private BigDecimal toDecimal(Object value, BigDecimal fallback) {
+        if (value instanceof Number n) {
+            return new BigDecimal(n.toString());
+        }
+        if (value instanceof String s && !s.isBlank()) {
+            try {
+                return new BigDecimal(s.trim());
+            } catch (NumberFormatException ignored) {
+                return fallback;
+            }
+        }
+        return fallback;
+    }
+
+    private int toInt(Object value, int fallback) {
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        if (value instanceof String s && !s.isBlank()) {
+            try {
+                return Integer.parseInt(s.trim());
+            } catch (NumberFormatException ignored) {
+                return fallback;
+            }
+        }
+        return fallback;
     }
 
     @Override

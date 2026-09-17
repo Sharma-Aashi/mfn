@@ -8,15 +8,14 @@ import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
 import { OrderService } from '../../../core/services/order.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { SiteSettingsService } from '../../../core/services/site-settings.service';
 import { ToastService } from '../../../core/services/toast.service';
-
-const FREE_SHIPPING_THRESHOLD = 999;
-const STANDARD_SHIPPING = 79;
+import { MediaUrlPipe } from '../../../core/pipes/media-url.pipe';
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, CurrencyPipe],
+  imports: [RouterLink, ReactiveFormsModule, CurrencyPipe, MediaUrlPipe],
   templateUrl: './checkout.page.html',
 })
 export class CheckoutPage {
@@ -33,9 +32,13 @@ export class CheckoutPage {
   protected readonly savedAddresses = signal<Address[]>([]);
   protected readonly submitting = signal(false);
 
-  protected readonly shipping = computed(() =>
-    this.cartService.cart().subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING,
-  );
+  private readonly commerce = inject(SiteSettingsService).commerce;
+
+  /** Preview only - the server recomputes shipping from the same settings when the order is placed. */
+  protected readonly shipping = computed(() => {
+    const { freeShippingThreshold, shippingFee } = this.commerce();
+    return this.cartService.cart().subtotal >= freeShippingThreshold ? 0 : shippingFee;
+  });
   protected readonly grandTotal = computed(() => this.cartService.cart().subtotal + this.shipping());
 
   protected readonly customerForm = this.fb.nonNullable.group({

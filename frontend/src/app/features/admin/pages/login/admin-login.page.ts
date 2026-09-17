@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { SeoService } from '../../../../core/services/seo.service';
+import { SiteSettingsService } from '../../../../core/services/site-settings.service';
 
 @Component({
   selector: 'app-admin-login',
@@ -15,7 +16,7 @@ import { SeoService } from '../../../../core/services/seo.service';
           <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-beige-500">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1f3d24" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
           </div>
-          <h1 class="font-display text-xl font-semibold text-white">VITALORA Admin</h1>
+          <h1 class="font-display text-xl font-semibold text-white">{{ siteSettings.brand().name }} Admin</h1>
           <p class="mt-1 text-sm text-beige-200/70">Sign in to manage the storefront</p>
         </div>
 
@@ -43,6 +44,7 @@ export class AdminLoginPage {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  protected readonly siteSettings = inject(SiteSettingsService);
 
   protected readonly loading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);

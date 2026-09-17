@@ -1,5 +1,6 @@
 package com.vitalora.api.service.impl;
 
+import com.vitalora.api.dto.cms.CommerceSettings;
 import com.vitalora.api.dto.common.PageResponse;
 import com.vitalora.api.dto.order.CreateOrderRequest;
 import com.vitalora.api.dto.order.OrderResponse;
@@ -9,6 +10,7 @@ import com.vitalora.api.exception.ResourceNotFoundException;
 import com.vitalora.api.mapper.OrderMapper;
 import com.vitalora.api.mapper.ProductMapper;
 import com.vitalora.api.repository.*;
+import com.vitalora.api.service.CmsService;
 import com.vitalora.api.service.OrderService;
 import com.vitalora.api.util.OrderNumberGenerator;
 import lombok.RequiredArgsConstructor;
@@ -26,15 +28,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    private static final BigDecimal FREE_SHIPPING_THRESHOLD = new BigDecimal("999.00");
-    private static final BigDecimal STANDARD_SHIPPING_FEE = new BigDecimal("79.00");
-    private static final int ESTIMATED_DELIVERY_DAYS = 5;
-
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final CmsService cmsService;
 
     @Override
     @Transactional(readOnly = true)
@@ -103,7 +102,10 @@ public class OrderServiceImpl implements OrderService {
             product.getInventory().setStockQuantity(availableStock - cartItem.getQuantity());
         }
 
-        BigDecimal shippingAmount = subtotal.compareTo(FREE_SHIPPING_THRESHOLD) >= 0 ? BigDecimal.ZERO : STANDARD_SHIPPING_FEE;
+        CommerceSettings commerce = cmsService.getCommerceSettings();
+        BigDecimal shippingAmount = subtotal.compareTo(commerce.freeShippingThreshold()) >= 0
+                ? BigDecimal.ZERO
+                : commerce.shippingFee();
         BigDecimal discountAmount = BigDecimal.ZERO;
         BigDecimal taxAmount = BigDecimal.ZERO;
         BigDecimal grandTotal = subtotal.subtract(discountAmount).add(shippingAmount).add(taxAmount);
@@ -130,7 +132,7 @@ public class OrderServiceImpl implements OrderService {
                 .taxAmount(taxAmount)
                 .grandTotal(grandTotal)
                 .paymentMethod("COD")
-                .estimatedDeliveryDate(LocalDate.now().plusDays(ESTIMATED_DELIVERY_DAYS))
+                .estimatedDeliveryDate(LocalDate.now().plusDays(commerce.estimatedDeliveryDays()))
                 .customerNotes(request.customerNotes())
                 .build();
 

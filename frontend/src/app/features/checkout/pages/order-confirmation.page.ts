@@ -4,11 +4,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Order } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { MediaUrlPipe } from '../../../core/pipes/media-url.pipe';
 
 @Component({
   selector: 'app-order-confirmation',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, DatePipe],
+  imports: [MediaUrlPipe, RouterLink, CurrencyPipe, DatePipe],
   templateUrl: './order-confirmation.page.html',
 })
 export class OrderConfirmationPage {

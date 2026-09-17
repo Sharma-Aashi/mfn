@@ -6,11 +6,12 @@ import { InventoryService } from '../../../../core/services/inventory.service';
 import { SeoService } from '../../../../core/services/seo.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { MediaUrlPipe } from '../../../../core/pipes/media-url.pipe';
 
 @Component({
   selector: 'app-admin-inventory',
   standalone: true,
-  imports: [FormsModule, PaginationComponent],
+  imports: [MediaUrlPipe, FormsModule, PaginationComponent],
   templateUrl: './admin-inventory.page.html',
 })
 export class AdminInventoryPage {

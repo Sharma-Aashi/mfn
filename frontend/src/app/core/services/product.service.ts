@@ -86,6 +86,10 @@ export class ProductService {
     return this.http.delete<MessageResponse>(`${this.base}/${productId}/images/${imageId}`);
   }
 
+  updateImage(productId: number, imageId: number, changes: { altText?: string; primary?: boolean }): Observable<ProductDetail> {
+    return this.http.patch<ProductDetail>(`${this.base}/${productId}/images/${imageId}`, changes);
+  }
+
   reorderImages(productId: number, imageIds: number[]): Observable<ProductDetail> {
     return this.http.put<ProductDetail>(`${this.base}/${productId}/images/order`, { imageIds });
   }

@@ -10,7 +10,9 @@ import { CartService } from '../../../../core/services/cart.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { ReviewService } from '../../../../core/services/review.service';
 import { SeoService } from '../../../../core/services/seo.service';
+import { SiteSettingsService } from '../../../../core/services/site-settings.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { MediaUrlPipe, resolveMediaUrl } from '../../../../core/pipes/media-url.pipe';
 import { WishlistService } from '../../../../core/services/wishlist.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/product-card.component';
 import { QuantityStepperComponent } from '../../../../shared/components/quantity-stepper/quantity-stepper.component';
@@ -21,7 +23,7 @@ type TabKey = 'description' | 'benefits' | 'ingredients' | 'nutrition' | 'usage'
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe, StarRatingComponent, QuantityStepperComponent, ProductCardComponent],
+  imports: [RouterLink, FormsModule, DatePipe, StarRatingComponent, QuantityStepperComponent, ProductCardComponent, MediaUrlPipe],
   templateUrl: './product-detail.page.html',
 })
 export class ProductDetailPage {
@@ -34,6 +36,7 @@ export class ProductDetailPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly seo = inject(SeoService);
+  protected readonly commerce = inject(SiteSettingsService).commerce;
 
   protected readonly product = signal<ProductDetail | null>(null);
   protected readonly notFound = signal(false);
@@ -86,7 +89,10 @@ export class ProductDetailPage {
           name: p.name,
           description: p.shortDescription ?? p.description ?? undefined,
           sku: p.sku,
-          image: p.images.map((i) => i.imageUrl),
+          image: p.images.map((i) => {
+            const url = resolveMediaUrl(i.imageUrl);
+            return url.startsWith('http') ? url : window.location.origin + url;
+          }),
           aggregateRating: p.reviewCount > 0 ? {
             '@type': 'AggregateRating',
             ratingValue: p.avgRating,

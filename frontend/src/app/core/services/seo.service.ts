@@ -1,8 +1,8 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, effect, inject, signal } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
+import { SiteSettingsService } from './site-settings.service';
 
-const SITE_NAME = 'VITALORA';
 const JSON_LD_ID = 'structured-data';
 
 @Injectable({ providedIn: 'root' })
@@ -10,14 +10,29 @@ export class SeoService {
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);
   private readonly document = inject(DOCUMENT);
+  private readonly brand = inject(SiteSettingsService).brand;
+  private readonly pageTitle = signal<string | null>(null);
 
+  constructor() {
+    // Pages set their title before site settings finish loading, so re-apply
+    // the "Page | Brand" suffix once the real brand name arrives.
+    effect(() => {
+      const page = this.pageTitle();
+      if (page === null) return;
+      const { name, tagline } = this.brand();
+      const full = page ? `${page} | ${name}` : [name, tagline].filter(Boolean).join(' | ');
+      this.title.setTitle(full);
+      this.meta.updateTag({ property: 'og:title', content: full });
+    });
+  }
+
+  /** Pass an empty pageTitle for the homepage to get "Brand | Tagline". */
   update(pageTitle: string, description?: string): void {
-    this.title.setTitle(`${pageTitle} | ${SITE_NAME}`);
+    this.pageTitle.set(pageTitle);
     if (description) {
       this.meta.updateTag({ name: 'description', content: description });
       this.meta.updateTag({ property: 'og:description', content: description });
     }
-    this.meta.updateTag({ property: 'og:title', content: `${pageTitle} | ${SITE_NAME}` });
     this.clearJsonLd();
   }
 

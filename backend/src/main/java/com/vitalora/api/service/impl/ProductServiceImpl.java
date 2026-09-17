@@ -3,6 +3,7 @@ package com.vitalora.api.service.impl;
 import com.vitalora.api.config.AppProperties;
 import com.vitalora.api.dto.common.PageResponse;
 import com.vitalora.api.dto.product.ProductImageOrderRequest;
+import com.vitalora.api.dto.product.ProductImageUpdateRequest;
 import com.vitalora.api.dto.product.ProductRequest;
 import com.vitalora.api.dto.product.ProductResponse;
 import com.vitalora.api.dto.product.ProductSummaryResponse;
@@ -336,6 +337,24 @@ public class ProductServiceImpl implements ProductService {
                     .findFirst()
                     .orElseThrow(() -> new BadRequestException("Image " + imageId + " does not belong to this product."));
             image.setDisplayOrder(order);
+        }
+        return ProductMapper.toResponse(productRepository.save(product));
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse updateImage(Long productId, Long imageId, ProductImageUpdateRequest request) {
+        Product product = findEntity(productId);
+        ProductImage target = product.getImages().stream()
+                .filter(img -> img.getId().equals(imageId))
+                .findFirst()
+                .orElseThrow(() -> ResourceNotFoundException.of("Product image", imageId));
+
+        if (request.altText() != null) {
+            target.setAltText(request.altText().isBlank() ? product.getName() : request.altText().trim());
+        }
+        if (Boolean.TRUE.equals(request.primary())) {
+            product.getImages().forEach(img -> img.setPrimary(img == target));
         }
         return ProductMapper.toResponse(productRepository.save(product));
     }

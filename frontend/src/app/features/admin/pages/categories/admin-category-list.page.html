@@ -15,7 +15,7 @@
           <div class="mb-3 flex items-center gap-3">
             <label class="relative h-14 w-14 shrink-0 cursor-pointer overflow-hidden rounded-xl bg-beige-100">
               @if (c.imageUrl) {
-                <img [src]="c.imageUrl" [alt]="c.name" class="h-full w-full object-cover" />
+                <img [src]="c.imageUrl | mediaUrl" [alt]="c.name" class="h-full w-full object-cover" />
               }
               <div class="absolute inset-0 flex items-center justify-center bg-charcoal-900/0 text-white opacity-0 transition hover:bg-charcoal-900/40 hover:opacity-100">
                 @if (uploadingImageId() === c.id) {

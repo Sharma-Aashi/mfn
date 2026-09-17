@@ -12,11 +12,12 @@ import { SeoService } from '../../../../core/services/seo.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { MediaUrlPipe } from '../../../../core/pipes/media-url.pipe';
 
 @Component({
   selector: 'app-admin-product-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, CurrencyPipe, PaginationComponent, EmptyStateComponent],
+  imports: [MediaUrlPipe, RouterLink, FormsModule, CurrencyPipe, PaginationComponent, EmptyStateComponent],
   templateUrl: './admin-product-list.page.html',
 })
 export class AdminProductListPage {

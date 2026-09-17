@@ -7,11 +7,12 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { MediaUrlPipe } from '../../../core/pipes/media-url.pipe';
 
 @Component({
   selector: 'app-wishlist',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, EmptyStateComponent],
+  imports: [MediaUrlPipe, RouterLink, CurrencyPipe, EmptyStateComponent],
   templateUrl: './wishlist.page.html',
 })
 export class WishlistPage {

@@ -85,12 +85,37 @@
             <p class="text-sm text-charcoal-600">{{ i.businessHours }}</p>
           </div>
 
-          <div class="aspect-video overflow-hidden rounded-xl bg-beige-100">
-            <div class="flex h-full w-full flex-col items-center justify-center gap-2 text-charcoal-400">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span class="text-xs">Map view of {{ i.address }}</span>
+          @if (mapUrl(); as url) {
+            <div class="aspect-video overflow-hidden rounded-xl bg-beige-100">
+              <iframe
+                [src]="url"
+                [title]="'Map showing ' + i.address"
+                class="h-full w-full border-0"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen
+              ></iframe>
             </div>
-          </div>
+          }
+
+          @if (socials().length > 0) {
+            <div>
+              <p class="mb-2 text-sm font-semibold text-charcoal-900">Follow us</p>
+              <div class="flex gap-2">
+                @for (s of socials(); track s.name) {
+                  <a
+                    [href]="s.href"
+                    [attr.aria-label]="s.label"
+                    target="_blank"
+                    rel="noopener"
+                    class="flex h-9 w-9 items-center justify-center rounded-full bg-forest-50 text-forest-700 transition hover:bg-forest-100"
+                  >
+                    <app-icon [name]="s.name" />
+                  </a>
+                }
+              </div>
+            </div>
+          }
 
           <p class="text-sm text-charcoal-500">
             Have a quick question? Check our <a routerLink="/faq" class="font-semibold text-forest-700 hover:underline">FAQ page</a> for instant answers.

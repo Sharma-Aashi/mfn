@@ -4,13 +4,14 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Order, OrderStatus } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { MediaUrlPipe } from '../../../core/pipes/media-url.pipe';
 
 const TRACK_STEPS: OrderStatus[] = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
 
 @Component({
   selector: 'app-order-detail',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, DatePipe],
+  imports: [MediaUrlPipe, RouterLink, CurrencyPipe, DatePipe],
   templateUrl: './order-detail.page.html',
 })
 export class OrderDetailPage {

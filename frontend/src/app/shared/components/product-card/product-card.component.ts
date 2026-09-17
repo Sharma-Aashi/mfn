@@ -8,11 +8,12 @@ import { QuickViewService } from '../../../core/services/quick-view.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { StarRatingComponent } from '../star-rating/star-rating.component';
+import { MediaUrlPipe } from '../../../core/pipes/media-url.pipe';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, StarRatingComponent],
+  imports: [MediaUrlPipe, RouterLink, CurrencyPipe, StarRatingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article
@@ -22,7 +23,7 @@ import { StarRatingComponent } from '../star-rating/star-rating.component';
         <a [routerLink]="['/products', product().slug]" class="block h-full w-full">
           @if (product().primaryImageUrl) {
             <img
-              [src]="product().primaryImageUrl"
+              [src]="product().primaryImageUrl | mediaUrl"
               [alt]="product().name"
               loading="lazy"
               class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

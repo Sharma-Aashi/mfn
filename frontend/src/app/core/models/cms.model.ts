@@ -1,4 +1,6 @@
 export interface HeroSection {
+  /** Small badge above the headline; hidden when empty. */
+  eyebrow?: string;
   title: string;
   subtitle: string;
   primaryCtaText: string;
@@ -57,6 +59,7 @@ export interface TextSection {
 export interface AboutContent {
   hero: { heading: string; subtitle: string };
   story: TextSection;
+  storyImage?: { url: string };
   mission: TextSection;
   vision: TextSection;
   quality: TextSection;
@@ -70,6 +73,8 @@ export interface ContactInfo {
   phone: string;
   address: string;
   businessHours: string;
+  /** Google Maps "Embed a map" iframe src URL; empty hides the map. */
+  mapEmbedUrl?: string;
 }
 
 export interface ContactContent {
