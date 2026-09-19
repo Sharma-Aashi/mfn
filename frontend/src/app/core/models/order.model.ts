@@ -4,6 +4,10 @@ export interface OrderItem {
   productId: number | null;
   productSlug: string | null;
   productName: string;
+  /** Snapshot at order time; a later brand rename does not rewrite history. */
+  brandName: string | null;
+  /** Which option was bought. Null for a single-SKU product. */
+  variantLabel: string | null;
   productImage: string | null;
   sku: string | null;
   unitPrice: number;

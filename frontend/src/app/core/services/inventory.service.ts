@@ -16,7 +16,7 @@ export class InventoryService {
     return this.http.get<PageResponse<InventoryItem>>(this.base, { params });
   }
 
-  updateStock(productId: number, request: StockUpdateRequest): Observable<InventoryItem> {
-    return this.http.patch<InventoryItem>(`${this.base}/${productId}`, request);
+  updateStock(variantId: number, request: StockUpdateRequest): Observable<InventoryItem> {
+    return this.http.patch<InventoryItem>(`${this.base}/${variantId}`, request);
   }
 }

@@ -47,6 +47,7 @@
           <tr class="border-b border-charcoal-100 text-left text-xs uppercase tracking-wide text-charcoal-400">
             <th class="w-10 px-4 py-3"><input type="checkbox" [checked]="selected().size === products().length" (change)="toggleSelectAll()" /></th>
             <th class="px-4 py-3">Product</th>
+            <th class="px-4 py-3">Brand</th>
             <th class="px-4 py-3">SKU</th>
             <th class="px-4 py-3">Price</th>
             <th class="px-4 py-3">Stock</th>
@@ -66,8 +67,25 @@
                       <img [src]="p.images[0].imageUrl | mediaUrl" [alt]="p.name" class="h-full w-full object-cover" />
                     }
                   </div>
-                  <span class="font-medium text-charcoal-800">{{ p.name }}</span>
+                  <span class="flex flex-col">
+                    <span class="font-medium text-charcoal-800">{{ p.name }}</span>
+                    @if (p.variants.length > 1) {
+                      <span class="text-xs text-charcoal-500">{{ p.variants.length }} options</span>
+                    }
+                  </span>
                 </div>
+              </td>
+              <td class="px-4 py-3">
+                @if (p.brand; as b) {
+                  <span class="flex items-center gap-1.5">
+                    <span class="text-charcoal-700">{{ b.name }}</span>
+                    @if (b.houseBrand) {
+                      <span class="rounded bg-forest-50 px-1.5 py-0.5 text-[10px] font-semibold text-forest-700">Ours</span>
+                    }
+                  </span>
+                } @else {
+                  <span class="text-charcoal-300">&mdash;</span>
+                }
               </td>
               <td class="px-4 py-3 text-charcoal-500">{{ p.sku }}</td>
               <td class="px-4 py-3 text-charcoal-700">{{ p.effectivePrice | currency: 'INR' : 'symbol' : '1.0-0' }}</td>

@@ -27,26 +27,34 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-charcoal-100">
-          @for (item of items(); track item.productId) {
+          @for (item of items(); track item.variantId) {
             <tr [class]="item.lowStock ? 'bg-red-50/40' : ''">
               <td class="px-4 py-3">
                 <div class="flex items-center gap-3">
                   <div class="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-beige-100">
                     @if (item.primaryImageUrl) { <img [src]="item.primaryImageUrl | mediaUrl" [alt]="item.productName" loading="lazy" class="h-full w-full object-cover" /> }
                   </div>
-                  <span class="font-medium text-charcoal-800">{{ item.productName }}</span>
+                  <span class="flex flex-col">
+                    @if (item.brandName) {
+                      <span class="text-[11px] font-semibold uppercase tracking-wide text-charcoal-500">{{ item.brandName }}</span>
+                    }
+                    <span class="font-medium text-charcoal-800">{{ item.productName }}</span>
+                    @if (item.variantLabel) {
+                      <span class="text-xs text-charcoal-500">{{ item.variantLabel }}</span>
+                    }
+                  </span>
                 </div>
               </td>
               <td class="px-4 py-3 text-charcoal-500">{{ item.sku }}</td>
               <td class="px-4 py-3">
-                @if (editingId() === item.productId) {
+                @if (editingId() === item.variantId) {
                   <input type="number" min="0" [(ngModel)]="editStock" aria-label="Stock quantity" class="w-20 rounded-lg border border-charcoal-200 px-2 py-1 text-sm" />
                 } @else {
                   <span [class]="item.lowStock ? 'font-semibold text-red-600' : 'text-charcoal-700'">{{ item.stockQuantity }}</span>
                 }
               </td>
               <td class="px-4 py-3">
-                @if (editingId() === item.productId) {
+                @if (editingId() === item.variantId) {
                   <input type="number" min="0" [(ngModel)]="editThreshold" aria-label="Low stock threshold" class="w-20 rounded-lg border border-charcoal-200 px-2 py-1 text-sm" />
                 } @else {
                   <span class="text-charcoal-500">{{ item.lowStockThreshold }}</span>
@@ -62,8 +70,8 @@
                 }
               </td>
               <td class="px-4 py-3 text-right">
-                @if (editingId() === item.productId) {
-                  <button type="button" (click)="saveEdit(item.productId)" class="text-xs font-semibold text-forest-700 hover:underline">Save</button>
+                @if (editingId() === item.variantId) {
+                  <button type="button" (click)="saveEdit(item.variantId)" class="text-xs font-semibold text-forest-700 hover:underline">Save</button>
                 } @else {
                   <button type="button" (click)="startEdit(item)" class="text-xs font-semibold text-charcoal-600 hover:underline">Update Stock</button>
                 }

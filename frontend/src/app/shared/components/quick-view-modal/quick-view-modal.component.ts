@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
+import { ProductSummary } from '../../../core/models/product.model';
 import { QuickViewService } from '../../../core/services/quick-view.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
@@ -37,25 +38,40 @@ import { MediaUrlPipe } from '../../../core/pipes/media-url.pipe';
             }
 
             <div class="flex items-baseline gap-2">
-              <span class="font-display text-2xl font-semibold text-forest-800">{{ product.effectivePrice | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
-              @if (product.salePrice) {
-                <span class="text-base text-charcoal-400 line-through">{{ product.price | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+              @if (product.multipleVariants) {
+                <span class="text-xs text-charcoal-500">from</span>
+                <span class="font-display text-2xl font-semibold text-forest-800">{{ product.fromPrice | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+              } @else {
+                <span class="font-display text-2xl font-semibold text-forest-800">{{ product.effectivePrice | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+                @if (product.salePrice) {
+                  <span class="text-base text-charcoal-400 line-through">{{ product.price | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+                }
               }
             </div>
 
-            @if (product.inStock) {
+            @if (!product.inStock) {
+              <p class="mt-2 text-sm font-semibold text-red-600">Currently out of stock</p>
+            } @else if (product.multipleVariants) {
+              <!-- Flavour and size belong on the full page, not in a peek. -->
+              <a
+                [routerLink]="['/products', product.slug]"
+                (click)="close()"
+                class="mt-2 block rounded-full bg-forest-700 px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-forest-800"
+              >
+                Choose from {{ product.variantCount }} options
+              </a>
+            } @else {
               <div class="mt-2 flex items-center gap-3">
                 <app-quantity-stepper [value]="qty()" (valueChange)="qty.set($event)" />
                 <button
                   type="button"
-                  (click)="addToCart(product.id, product.name)"
-                  class="flex-1 rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-forest-800"
+                  (click)="addToCart(product)"
+                  [disabled]="product.defaultVariantId === null"
+                  class="flex-1 rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-forest-800 disabled:cursor-not-allowed disabled:bg-charcoal-200"
                 >
                   Add to Cart
                 </button>
               </div>
-            } @else {
-              <p class="mt-2 text-sm font-semibold text-red-600">Currently out of stock</p>
             }
 
             <div class="mt-1 flex items-center gap-4 text-sm">
@@ -86,9 +102,10 @@ export class QuickViewModalComponent {
     this.qty.set(1);
   }
 
-  protected addToCart(productId: number, name: string): void {
-    this.cartService.addItem(productId, this.qty()).subscribe(() => {
-      this.toast.success(`${name} added to cart.`);
+  protected addToCart(product: ProductSummary): void {
+    if (product.defaultVariantId === null) return;
+    this.cartService.addItem(product.defaultVariantId, this.qty(), product.id).subscribe(() => {
+      this.toast.success(`${product.name} added to cart.`);
       this.close();
     });
   }

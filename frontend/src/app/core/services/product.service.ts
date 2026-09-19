@@ -3,7 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MessageResponse, PageResponse } from '../models/common.model';
-import { ProductDetail, ProductFilterParams, ProductRequest, ProductSummary } from '../models/product.model';
+import {
+  ProductDetail,
+  ProductFacets,
+  ProductFilterParams,
+  ProductRequest,
+  ProductSummary,
+} from '../models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -13,11 +19,25 @@ export class ProductService {
   search(filters: ProductFilterParams): Observable<PageResponse<ProductSummary>> {
     let params = new HttpParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        params = params.set(key, String(value));
+      if (value === undefined || value === null || value === '') {
+        return;
       }
+      if (Array.isArray(value)) {
+        // Repeat the key per value (brands=a&brands=b) rather than joining with
+        // commas, so a flavour or size label containing a comma still filters.
+        value.forEach((entry) => {
+          params = params.append(key, String(entry));
+        });
+        return;
+      }
+      params = params.set(key, String(value));
     });
     return this.http.get<PageResponse<ProductSummary>>(this.base, { params });
+  }
+
+  /** Which brands, flavours and sizes the listing sidebar should offer. */
+  getFacets(): Observable<ProductFacets> {
+    return this.http.get<ProductFacets>(`${this.base}/facets`);
   }
 
   searchForAdmin(params: {
