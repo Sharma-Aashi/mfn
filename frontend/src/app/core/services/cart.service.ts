@@ -163,6 +163,7 @@ export class CartService {
       variantLabel: variant.label,
       sku: variant.sku,
       unitPrice: variant.effectivePrice,
+      unitMrp: variant.price,
       quantity: entry.quantity,
       lineTotal: variant.effectivePrice * entry.quantity,
       inStock: product.active && variant.inStock && variant.stockQuantity >= entry.quantity,
