@@ -36,17 +36,39 @@ export class CartPage {
     Math.max(0, this.commerce().freeShippingThreshold - this.cartService.cart().subtotal),
   );
 
+  /** How far along the free-shipping threshold the basket is, as a percentage. */
+  protected readonly freeShippingProgress = computed(() => {
+    const threshold = this.commerce().freeShippingThreshold;
+    if (threshold <= 0) return 100;
+    return Math.min(100, Math.round((this.cartService.cart().subtotal / threshold) * 100));
+  });
+
+  /** Total off list price across the basket. Zero when nothing is discounted. */
+  protected readonly savings = computed(() =>
+    this.cartService
+      .cart()
+      .items.reduce((sum, i) => sum + Math.max(0, i.unitMrp - i.unitPrice) * i.quantity, 0),
+  );
+
+  /**
+   * Lines the order endpoint would reject: sold out, or fewer left than the
+   * basket asks for. Catching them here beats failing at checkout.
+   */
+  protected readonly blockingItems = computed(() =>
+    this.cartService.cart().items.filter((i) => !i.inStock || i.quantity > i.availableStock),
+  );
+
   constructor() {
     inject(SeoService).update('Shopping Cart');
     this.cartService.refresh();
   }
 
   protected updateQty(item: CartItem, qty: number): void {
-    this.cartService.updateItem(item.productId, qty).subscribe();
+    this.cartService.updateItem(item.variantId, qty).subscribe();
   }
 
   protected remove(item: CartItem): void {
-    this.cartService.removeItem(item.productId).subscribe(() => this.toast.info(`${item.productName} removed from cart.`));
+    this.cartService.removeItem(item.variantId).subscribe(() => this.toast.info(`${item.productName} removed from cart.`));
   }
 
   protected moveToWishlist(item: CartItem): void {
@@ -55,11 +77,15 @@ export class CartPage {
       return;
     }
     this.wishlistService.add(item.productId).subscribe(() => {
-      this.cartService.removeItem(item.productId).subscribe(() => this.toast.success(`${item.productName} moved to wishlist.`));
+      this.cartService.removeItem(item.variantId).subscribe(() => this.toast.success(`${item.productName} moved to wishlist.`));
     });
   }
 
   protected checkout(): void {
+    if (this.blockingItems().length > 0) {
+      this.toast.error('Some items are no longer available. Update them before checking out.');
+      return;
+    }
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/account/login'], { queryParams: { returnUrl: '/checkout' } });
       return;

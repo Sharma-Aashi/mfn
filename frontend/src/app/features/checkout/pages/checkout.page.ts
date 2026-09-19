@@ -32,7 +32,7 @@ export class CheckoutPage {
   protected readonly savedAddresses = signal<Address[]>([]);
   protected readonly submitting = signal(false);
 
-  private readonly commerce = inject(SiteSettingsService).commerce;
+  protected readonly commerce = inject(SiteSettingsService).commerce;
 
   /** Preview only - the server recomputes shipping from the same settings when the order is placed. */
   protected readonly shipping = computed(() => {
@@ -40,6 +40,15 @@ export class CheckoutPage {
     return this.cartService.cart().subtotal >= freeShippingThreshold ? 0 : shippingFee;
   });
   protected readonly grandTotal = computed(() => this.cartService.cart().subtotal + this.shipping());
+
+  /** Total off list price, repeated here so the saving is visible at the moment of paying. */
+  protected readonly savings = computed(() =>
+    this.cartService
+      .cart()
+      .items.reduce((sum, i) => sum + Math.max(0, i.unitMrp - i.unitPrice) * i.quantity, 0),
+  );
+
+  protected readonly deliveryDays = computed(() => this.commerce().estimatedDeliveryDays);
 
   protected readonly customerForm = this.fb.nonNullable.group({
     customerFullName: ['', [Validators.required, Validators.maxLength(150)]],

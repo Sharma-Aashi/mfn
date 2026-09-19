@@ -1,9 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Category } from '../../../../core/models/category.model';
-import { ProductSummary } from '../../../../core/models/product.model';
+import { ProductFacets, ProductSummary } from '../../../../core/models/product.model';
 import { CategoryService } from '../../../../core/services/category.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { SeoService } from '../../../../core/services/seo.service';
@@ -40,9 +40,29 @@ export class ProductListPage {
   protected readonly totalElements = signal(0);
   protected readonly totalPages = signal(0);
   protected readonly mobileFiltersOpen = signal(false);
+  protected readonly facets = signal<ProductFacets | null>(null);
+
+  /**
+   * The category list as a two-level tree. The API hands back a flat list, and
+   * rendering it flat would put forty-odd sibling rows in the sidebar.
+   */
+  protected readonly categoryTree = computed(() => {
+    const all = this.categories();
+    return all
+      .filter((c) => c.parentId === null)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((parent) => ({
+        parent,
+        kids: all.filter((k) => k.parentId === parent.id).sort((a, b) => a.displayOrder - b.displayOrder),
+      }));
+  });
 
   protected q = '';
   protected category = '';
+  protected brands: string[] = [];
+  protected flavours: string[] = [];
+  protected sizes: string[] = [];
+  protected inStockOnly = false;
   protected minPrice: number | null = null;
   protected maxPrice: number | null = null;
   protected minRating: number | null = null;
@@ -52,10 +72,15 @@ export class ProductListPage {
   constructor() {
     this.seo.update('Shop All Supplements', 'Browse our full range of premium, science-backed health and wellness supplements.');
     this.categoryService.getAllActive().subscribe((c) => this.categories.set(c));
+    this.productService.getFacets().subscribe((f) => this.facets.set(f));
 
     this.route.queryParamMap.subscribe((params) => {
       this.q = params.get('q') ?? '';
       this.category = params.get('category') ?? '';
+      this.brands = params.getAll('brands');
+      this.flavours = params.getAll('flavours');
+      this.sizes = params.getAll('sizes');
+      this.inStockOnly = params.get('inStockOnly') === 'true';
       this.minPrice = params.get('minPrice') ? Number(params.get('minPrice')) : null;
       this.maxPrice = params.get('maxPrice') ? Number(params.get('maxPrice')) : null;
       this.minRating = params.get('minRating') ? Number(params.get('minRating')) : null;
@@ -81,6 +106,10 @@ export class ProductListPage {
       .search({
         q: this.q || undefined,
         category: this.category || undefined,
+        brands: this.brands.length ? this.brands : undefined,
+        flavours: this.flavours.length ? this.flavours : undefined,
+        sizes: this.sizes.length ? this.sizes : undefined,
+        inStockOnly: this.inStockOnly || undefined,
         minPrice: this.minPrice ?? undefined,
         maxPrice: this.maxPrice ?? undefined,
         minRating: this.minRating ?? undefined,
@@ -105,6 +134,88 @@ export class ProductListPage {
     this.syncUrl();
   }
 
+  /** Facet pills are multi-select: clicking a chosen one removes it. */
+  protected toggleBrand(slug: string): void {
+    this.brands = this.brands.includes(slug) ? this.brands.filter((b) => b !== slug) : [...this.brands, slug];
+    this.page = 0;
+    this.syncUrl();
+  }
+
+  protected toggleFlavour(flavour: string): void {
+    this.flavours = this.flavours.includes(flavour)
+      ? this.flavours.filter((f) => f !== flavour)
+      : [...this.flavours, flavour];
+    this.page = 0;
+    this.syncUrl();
+  }
+
+  protected toggleSize(size: string): void {
+    this.sizes = this.sizes.includes(size) ? this.sizes.filter((s) => s !== size) : [...this.sizes, size];
+    this.page = 0;
+    this.syncUrl();
+  }
+
+  protected toggleInStockOnly(): void {
+    this.inStockOnly = !this.inStockOnly;
+    this.page = 0;
+    this.syncUrl();
+  }
+
+  protected isBrandSelected(slug: string): boolean {
+    return this.brands.includes(slug);
+  }
+
+  protected isFlavourSelected(flavour: string): boolean {
+    return this.flavours.includes(flavour);
+  }
+
+  protected isSizeSelected(size: string): boolean {
+    return this.sizes.includes(size);
+  }
+
+  /**
+   * The filters currently in force, as removable chips. Without these a shopper
+   * who scrolled past the sidebar cannot tell why the results are so thin.
+   */
+  protected activeChips(): { label: string; clear: () => void }[] {
+    const chips: { label: string; clear: () => void }[] = [];
+    if (this.q) {
+      const term = this.q;
+      chips.push({ label: `"${term}"`, clear: () => { this.q = ''; this.page = 0; this.syncUrl(); } });
+    }
+    if (this.category) {
+      const slug = this.category;
+      const name = this.categories().find((c) => c.slug === slug)?.name ?? slug;
+      chips.push({ label: name, clear: () => this.setCategory(slug) });
+    }
+    for (const slug of this.brands) {
+      const name = this.facets()?.brands.find((b) => b.slug === slug)?.name ?? slug;
+      chips.push({ label: name, clear: () => this.toggleBrand(slug) });
+    }
+    for (const f of this.flavours) {
+      chips.push({ label: f, clear: () => this.toggleFlavour(f) });
+    }
+    for (const size of this.sizes) {
+      chips.push({ label: size, clear: () => this.toggleSize(size) });
+    }
+    if (this.inStockOnly) {
+      chips.push({ label: 'In stock', clear: () => this.toggleInStockOnly() });
+    }
+    const rating = this.minRating;
+    if (rating) {
+      chips.push({ label: `${rating} stars & up`, clear: () => this.setMinRating(rating) });
+    }
+    if (this.minPrice !== null || this.maxPrice !== null) {
+      const lo = this.minPrice !== null ? String(this.minPrice) : '0';
+      const hi = this.maxPrice !== null ? String(this.maxPrice) : 'any';
+      chips.push({
+        label: `Rs ${lo} - ${hi}`,
+        clear: () => { this.minPrice = null; this.maxPrice = null; this.page = 0; this.syncUrl(); },
+      });
+    }
+    return chips;
+  }
+
   protected setSort(sort: string): void {
     this.sort = sort;
     this.syncUrl();
@@ -124,6 +235,10 @@ export class ProductListPage {
   protected clearFilters(): void {
     this.q = '';
     this.category = '';
+    this.brands = [];
+    this.flavours = [];
+    this.sizes = [];
+    this.inStockOnly = false;
     this.minPrice = null;
     this.maxPrice = null;
     this.minRating = null;
@@ -139,7 +254,17 @@ export class ProductListPage {
   }
 
   protected get hasActiveFilters(): boolean {
-    return !!(this.category || this.minPrice || this.maxPrice || this.minRating || this.q);
+    return !!(
+      this.category ||
+      this.minPrice ||
+      this.maxPrice ||
+      this.minRating ||
+      this.q ||
+      this.inStockOnly ||
+      this.brands.length ||
+      this.flavours.length ||
+      this.sizes.length
+    );
   }
 
   private syncUrl(): void {
@@ -148,6 +273,10 @@ export class ProductListPage {
       queryParams: {
         q: this.q || null,
         category: this.category || null,
+        brands: this.brands.length ? this.brands : null,
+        flavours: this.flavours.length ? this.flavours : null,
+        sizes: this.sizes.length ? this.sizes : null,
+        inStockOnly: this.inStockOnly ? 'true' : null,
         minPrice: this.minPrice || null,
         maxPrice: this.maxPrice || null,
         minRating: this.minRating || null,

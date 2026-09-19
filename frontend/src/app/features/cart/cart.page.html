@@ -20,9 +20,23 @@
   } @else {
     <div class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-3">
       <div class="lg:col-span-2">
-        @if (amountToFreeShipping() > 0) {
-          <div class="mb-5 rounded-xl bg-beige-100 px-4 py-3 text-sm text-charcoal-700">
-            Add <strong>{{ amountToFreeShipping() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong> more to unlock <strong>free shipping</strong>!
+        <div class="mb-5 rounded-xl border border-charcoal-100 bg-beige-50 px-4 py-3">
+          @if (amountToFreeShipping() > 0) {
+            <p class="text-sm text-charcoal-700">
+              Add <strong>{{ amountToFreeShipping() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong> more for <strong>free delivery</strong>
+            </p>
+          } @else {
+            <p class="text-sm font-semibold text-forest-700">Free delivery unlocked</p>
+          }
+          <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-charcoal-100">
+            <div class="h-full rounded-full bg-forest-600 transition-all" [style.width.%]="freeShippingProgress()"></div>
+          </div>
+        </div>
+
+        @if (blockingItems().length > 0) {
+          <div class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {{ blockingItems().length }} item{{ blockingItems().length === 1 ? '' : 's' }} in your cart can no longer be
+            supplied in the quantity you chose. Adjust or remove them to continue.
           </div>
         }
 
@@ -37,18 +51,33 @@
               <div class="flex flex-1 flex-col">
                 <div class="flex items-start justify-between gap-2">
                   <a [routerLink]="['/products', item.productSlug]" class="font-display text-sm font-semibold text-charcoal-900 hover:text-forest-700 sm:text-base">
+                    @if (item.brandName) {
+                      <span class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-charcoal-500">{{ item.brandName }}</span>
+                    }
                     {{ item.productName }}
+                    @if (item.variantLabel) {
+                      <span class="block text-xs font-normal text-charcoal-500">{{ item.variantLabel }}</span>
+                    }
                   </a>
                   <button type="button" (click)="remove(item)" class="shrink-0 text-charcoal-400 hover:text-red-600" aria-label="Remove item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6" /></svg>
                   </button>
                 </div>
-                <p class="mt-1 text-sm text-charcoal-500">{{ item.unitPrice | currency: 'INR' : 'symbol' : '1.0-0' }} each</p>
+                <p class="mt-1 flex items-baseline gap-2 text-sm text-charcoal-500">
+                  <span>{{ item.unitPrice | currency: 'INR' : 'symbol' : '1.0-0' }} each</span>
+                  @if (item.unitMrp > item.unitPrice) {
+                    <span class="text-xs line-through">{{ item.unitMrp | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+                  }
+                </p>
 
-                @if (!item.inStock) {
+                @if (item.availableStock === 0) {
+                  <p class="mt-1 text-xs font-semibold text-red-600">Out of stock &mdash; remove to continue</p>
+                } @else if (item.quantity > item.availableStock) {
                   <p class="mt-1 text-xs font-semibold text-red-600">
-                    Only {{ item.availableStock }} left in stock
+                    Only {{ item.availableStock }} left &mdash; reduce the quantity
                   </p>
+                } @else if (item.availableStock <= 5) {
+                  <p class="mt-1 text-xs font-medium text-charcoal-500">Only {{ item.availableStock }} left</p>
                 }
 
                 <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3">
@@ -76,6 +105,12 @@
               <span>Shipping</span>
               <span>{{ shipping() === 0 ? 'Free' : (shipping() | currency: 'INR' : 'symbol' : '1.0-0') }}</span>
             </div>
+            @if (savings() > 0) {
+              <div class="flex justify-between font-medium text-forest-700">
+                <span>You save</span>
+                <span>-{{ savings() | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+              </div>
+            }
             <div class="flex justify-between border-t border-charcoal-100 pt-3 text-base font-semibold text-charcoal-900">
               <span>Total</span>
               <span>{{ grandTotal() | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
@@ -85,6 +120,21 @@
             Proceed to Checkout
           </button>
           <a routerLink="/products" class="mt-3 block text-center text-sm font-semibold text-charcoal-500 hover:text-forest-700">Continue Shopping</a>
+
+          <ul class="mt-5 space-y-2 border-t border-charcoal-100 pt-4 text-xs text-charcoal-500">
+            <li class="flex items-center gap-2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="shrink-0 text-forest-700"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+              Genuine products, authorised sources
+            </li>
+            <li class="flex items-center gap-2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="shrink-0"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+              Cash on Delivery available
+            </li>
+            <li class="flex items-center gap-2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="shrink-0"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              7-day easy returns
+            </li>
+          </ul>
         </div>
       </div>
     </div>

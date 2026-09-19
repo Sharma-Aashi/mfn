@@ -131,7 +131,13 @@
                     }
                   </div>
                   <div class="flex-1">
+                    @if (item.brandName) {
+                      <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-charcoal-500">{{ item.brandName }}</p>
+                    }
                     <p class="text-sm font-semibold text-charcoal-900">{{ item.productName }}</p>
+                    @if (item.variantLabel) {
+                      <p class="text-xs text-charcoal-600">{{ item.variantLabel }}</p>
+                    }
                     <p class="text-xs text-charcoal-500">Qty: {{ item.quantity }}</p>
                   </div>
                   <span class="text-sm font-semibold text-charcoal-800">{{ item.lineTotal | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
@@ -204,15 +210,31 @@
               <span>Tax</span>
               <span>Included</span>
             </div>
+            @if (savings() > 0) {
+              <div class="flex justify-between font-medium text-forest-700">
+                <span>You save</span>
+                <span>-{{ savings() | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+              </div>
+            }
             <div class="flex justify-between border-t border-charcoal-100 pt-3 text-base font-semibold text-charcoal-900">
               <span>Grand Total</span>
               <span>{{ grandTotal() | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
             </div>
           </div>
-          <p class="mt-4 flex items-center gap-1.5 text-xs text-charcoal-400">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            Secure checkout • Pay on delivery
-          </p>
+          <div class="mt-4 space-y-2 border-t border-charcoal-100 pt-4 text-xs text-charcoal-500">
+            <p class="flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" class="shrink-0"><rect x="1" y="7" width="15" height="13" rx="2"/><path d="M16 11h3l3 3v6h-6"/><circle cx="6" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg>
+              Arrives in about {{ deliveryDays() }} days
+            </p>
+            <p class="flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" class="shrink-0 text-forest-700"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+              Genuine products, authorised sources
+            </p>
+            <p class="flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" class="shrink-0"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              Nothing to pay online &mdash; pay on delivery
+            </p>
+          </div>
         </div>
       </div>
     </div>

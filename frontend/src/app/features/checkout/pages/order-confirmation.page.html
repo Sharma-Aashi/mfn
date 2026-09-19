@@ -42,8 +42,14 @@
               }
             </div>
             <div class="flex-1">
+              @if (item.brandName) {
+                <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-charcoal-500">{{ item.brandName }}</p>
+              }
               <p class="text-sm font-semibold text-charcoal-900">{{ item.productName }}</p>
-              <p class="text-xs text-charcoal-500">Qty: {{ item.quantity }} × {{ item.unitPrice | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
+              @if (item.variantLabel) {
+                <p class="text-xs text-charcoal-600">{{ item.variantLabel }}</p>
+              }
+              <p class="text-xs text-charcoal-500">Qty: {{ item.quantity }} &times; {{ item.unitPrice | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
             </div>
             <span class="text-sm font-semibold text-charcoal-800">{{ item.lineTotal | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
           </div>
