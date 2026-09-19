@@ -2,6 +2,7 @@ import { Component, effect, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SeoService } from '../../../../core/services/seo.service';
 import { SiteSettingsService } from '../../../../core/services/site-settings.service';
+import { ThemeOption, ThemeService } from '../../../../core/services/theme.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { ImageUploadFieldComponent } from '../../../../shared/components/image-upload-field/image-upload-field.component';
 
@@ -17,8 +18,18 @@ export class AdminSettingsPage {
   private readonly fb = inject(FormBuilder);
   private readonly siteSettings = inject(SiteSettingsService);
   private readonly toast = inject(ToastService);
+  private readonly themeService = inject(ThemeService);
 
   protected readonly saving = signal(false);
+
+  /** Which theme the picker is showing. Painted live, only persisted on save. */
+  protected readonly pickedTheme = signal(this.themeService.activeKey());
+
+  protected readonly themeGroups: { name: string; themes: ThemeOption[] }[] = [
+    { name: 'Reviewed', themes: this.themeService.themes.filter((t) => t.group === 'Reviewed') },
+    { name: 'Red replaced', themes: this.themeService.themes.filter((t) => t.group === 'Red replaced') },
+    { name: 'Other accents', themes: this.themeService.themes.filter((t) => t.group === 'Other accents') },
+  ];
 
   protected readonly form = this.fb.nonNullable.group({
     brand: this.fb.nonNullable.group({
@@ -61,7 +72,25 @@ export class AdminSettingsPage {
       this.navLinks.clear({ emitEvent: false });
       s.nav.links.forEach((l) => this.navLinks.push(this.navLinkGroup(l.label, l.path), { emitEvent: false }));
       this.form.markAsPristine();
+      if (!this.themeDirty()) {
+        this.pickedTheme.set(this.themeService.activeKey());
+      }
     });
+  }
+
+  /** The picker is outside the reactive form, so it tracks its own dirty state. */
+  protected themeDirty(): boolean {
+    return this.pickedTheme() !== this.themeService.activeKey();
+  }
+
+  protected pickTheme(key: string): void {
+    this.pickedTheme.set(key);
+    this.themeService.preview(key);
+  }
+
+  protected revertTheme(): void {
+    this.pickedTheme.set(this.themeService.activeKey());
+    this.themeService.cancelPreview();
   }
 
   private navLinkGroup(label = '', path = ''): NavLinkGroup {
@@ -94,6 +123,8 @@ export class AdminSettingsPage {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.toast.error('Please fix the highlighted fields.');
+      // A rejected save must not leave a previewed theme looking saved.
+      this.revertTheme();
       return;
     }
     const v = this.form.getRawValue();
@@ -105,6 +136,7 @@ export class AdminSettingsPage {
         social: v.social,
         nav: { links: v.navLinks },
         commerce: v.commerce,
+        theme: { key: this.pickedTheme() },
       })
       .subscribe({
         next: () => {

@@ -17,6 +17,7 @@ export class SiteSettingsService {
   readonly social = computed(() => this.settings().social);
   readonly nav = computed(() => this.settings().nav);
   readonly commerce = computed(() => this.settings().commerce);
+  readonly theme = computed(() => this.settings().theme);
 
   load(): void {
     this.http.get<Partial<SiteSettings>>(this.url).subscribe({
@@ -39,6 +40,7 @@ export class SiteSettingsService {
     const s = saved ?? {};
     return {
       brand: { ...d.brand, ...s.brand },
+      theme: { ...d.theme, ...s.theme },
       footer: { ...d.footer, ...s.footer },
       social: { ...d.social, ...s.social },
       nav: { links: s.nav?.links?.length ? s.nav.links : d.nav.links },

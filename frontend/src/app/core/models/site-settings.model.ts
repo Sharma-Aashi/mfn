@@ -26,6 +26,11 @@ export interface NavSettings {
   links: NavLink[];
 }
 
+export interface ThemeSettings {
+  /** Key of a theme defined in styles/_themes.scss. Unknown keys fall back to the default. */
+  key: string;
+}
+
 export interface CommerceSettings {
   freeShippingThreshold: number;
   shippingFee: number;
@@ -34,6 +39,7 @@ export interface CommerceSettings {
 
 export interface SiteSettings {
   brand: BrandSettings;
+  theme: ThemeSettings;
   footer: FooterSettings;
   social: SocialSettings;
   nav: NavSettings;
@@ -42,6 +48,7 @@ export interface SiteSettings {
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   brand: { name: 'VITALORA', tagline: 'Better Health. Better Every Day.', logoUrl: '' },
+  theme: { key: 'emerald' },
   footer: {
     about: 'Better Health. Better Every Day. Premium, science-backed supplements for modern wellness routines.',
     copyrightName: 'VITALORA Wellness Pvt. Ltd.',
