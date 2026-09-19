@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Category } from '../../../../core/models/category.model';
 import { CategoryService } from '../../../../core/services/category.service';
@@ -30,9 +30,25 @@ export class AdminCategoryListPage {
     name: ['', Validators.required],
     slug: [''],
     description: [''],
+    parentId: [null as number | null],
     displayOrder: [0],
     active: [true],
   });
+
+  /**
+   * Candidate parents: top-level categories only (the tree is two deep), minus
+   * whatever is being edited so a category cannot be made its own parent.
+   */
+  protected readonly parentOptions = computed(() =>
+    this.categories().filter((c) => c.parentId === null && c.id !== this.editingId()),
+  );
+
+  /** Children grouped under their parent, for the two-level table. */
+  protected childrenOf(parentId: number): Category[] {
+    return this.categories().filter((c) => c.parentId === parentId);
+  }
+
+  protected readonly topLevel = computed(() => this.categories().filter((c) => c.parentId === null));
 
   constructor() {
     inject(SeoService).update('Manage Categories');
@@ -49,13 +65,20 @@ export class AdminCategoryListPage {
 
   protected openNew(): void {
     this.editingId.set(null);
-    this.form.reset({ displayOrder: 0, active: true });
+    this.form.reset({ displayOrder: 0, active: true, parentId: null });
     this.formOpen.set(true);
   }
 
   protected openEdit(c: Category): void {
     this.editingId.set(c.id);
-    this.form.reset({ name: c.name, slug: c.slug, description: c.description ?? '', displayOrder: c.displayOrder, active: c.active });
+    this.form.reset({
+      name: c.name,
+      slug: c.slug,
+      description: c.description ?? '',
+      parentId: c.parentId,
+      displayOrder: c.displayOrder,
+      active: c.active,
+    });
     this.formOpen.set(true);
   }
 

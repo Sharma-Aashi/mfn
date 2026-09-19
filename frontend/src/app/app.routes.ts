@@ -19,6 +19,14 @@ export const routes: Routes = [
       import('./features/products/pages/product-detail/product-detail.page').then((m) => m.ProductDetailPage),
   },
   {
+    path: 'brands',
+    loadComponent: () => import('./features/brands/brand-list.page').then((m) => m.BrandListPage),
+  },
+  {
+    path: 'brands/:slug',
+    loadComponent: () => import('./features/brands/brand-detail.page').then((m) => m.BrandDetailPage),
+  },
+  {
     path: 'cart',
     loadComponent: () => import('./features/cart/cart.page').then((m) => m.CartPage),
   },
@@ -100,6 +108,7 @@ export const routes: Routes = [
       { path: 'products/new', loadComponent: () => import('./features/admin/pages/products/admin-product-form.page').then((m) => m.AdminProductFormPage) },
       { path: 'products/:id/edit', loadComponent: () => import('./features/admin/pages/products/admin-product-form.page').then((m) => m.AdminProductFormPage) },
       { path: 'categories', loadComponent: () => import('./features/admin/pages/categories/admin-category-list.page').then((m) => m.AdminCategoryListPage) },
+      { path: 'brands', loadComponent: () => import('./features/admin/pages/brands/admin-brand-list.page').then((m) => m.AdminBrandListPage) },
       { path: 'inventory', loadComponent: () => import('./features/admin/pages/inventory/admin-inventory.page').then((m) => m.AdminInventoryPage) },
       { path: 'reviews', loadComponent: () => import('./features/admin/pages/reviews/admin-reviews.page').then((m) => m.AdminReviewsPage) },
       { path: 'faqs', loadComponent: () => import('./features/admin/pages/faqs/admin-faqs.page').then((m) => m.AdminFaqsPage) },

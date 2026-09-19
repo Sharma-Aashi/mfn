@@ -1,7 +1,6 @@
 <div class="container-vitalora py-8 sm:py-12">
   <div class="mb-6">
     <h1 class="font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">Shop All Supplements</h1>
-    <p class="mt-1 text-sm text-charcoal-500">{{ totalElements() }} product{{ totalElements() === 1 ? '' : 's' }} found</p>
   </div>
 
   <div class="flex flex-col gap-8 lg:flex-row">
@@ -9,23 +8,122 @@
     <aside class="hidden w-64 shrink-0 lg:block">
       <div class="sticky top-24 space-y-8">
         <div>
-          <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Goal / Category</h3>
-          <ul class="space-y-1.5">
-            @for (c of categories(); track c.id) {
+          <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Category</h3>
+          <ul class="space-y-3">
+            @for (node of categoryTree(); track node.parent.id) {
               <li>
                 <button
                   type="button"
-                  (click)="setCategory(c.slug)"
-                  class="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm transition"
-                  [class]="category === c.slug ? 'bg-forest-700 text-white font-semibold' : 'text-charcoal-600 hover:bg-beige-100'"
+                  (click)="setCategory(node.parent.slug)"
+                  class="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm font-semibold transition"
+                  [class]="category === node.parent.slug ? 'bg-forest-700 text-white' : 'text-charcoal-800 hover:bg-beige-100'"
                 >
-                  <span>{{ c.name }}</span>
-                  <span class="text-xs opacity-70">{{ c.productCount }}</span>
+                  <span>{{ node.parent.name }}</span>
+                  <span class="text-xs opacity-70">{{ node.parent.productCount }}</span>
                 </button>
+                @if (node.kids.length > 0) {
+                  <ul class="mt-1 space-y-0.5 border-l border-charcoal-100 pl-2.5">
+                    @for (kid of node.kids; track kid.id) {
+                      <li>
+                        <button
+                          type="button"
+                          (click)="setCategory(kid.slug)"
+                          class="flex w-full items-center justify-between rounded-lg px-2.5 py-1 text-left text-[13px] transition"
+                          [class]="category === kid.slug ? 'bg-forest-700 text-white font-semibold' : 'text-charcoal-600 hover:bg-beige-100'"
+                        >
+                          <span>{{ kid.name }}</span>
+                          <span class="text-xs opacity-70">{{ kid.productCount }}</span>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
               </li>
             }
           </ul>
         </div>
+
+        <div>
+          <label class="flex cursor-pointer items-center gap-2.5">
+            <input
+              type="checkbox"
+              [checked]="inStockOnly"
+              (change)="toggleInStockOnly()"
+              class="h-4 w-4 rounded border-charcoal-300"
+            />
+            <span class="text-sm font-medium text-charcoal-700">In stock only</span>
+          </label>
+        </div>
+
+        @if (facets()?.brands?.length) {
+          <div>
+            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Brand</h3>
+            <ul class="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+              @for (b of facets()!.brands; track b.id) {
+                <li>
+                  <label class="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm text-charcoal-600 hover:bg-beige-100">
+                    <input
+                      type="checkbox"
+                      [checked]="isBrandSelected(b.slug)"
+                      (change)="toggleBrand(b.slug)"
+                      class="h-4 w-4 rounded border-charcoal-300"
+                    />
+                    <span class="flex-1">{{ b.name }}</span>
+                    @if (b.houseBrand) {
+                      <span class="rounded bg-forest-50 px-1.5 py-0.5 text-[10px] font-semibold text-forest-700">Ours</span>
+                    }
+                  </label>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (facets()?.flavours?.length) {
+          <div>
+            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Flavour</h3>
+            <div class="flex flex-wrap gap-2">
+              @for (f of facets()!.flavours; track f) {
+                <button
+                  type="button"
+                  (click)="toggleFlavour(f)"
+                  [attr.aria-pressed]="isFlavourSelected(f)"
+                  class="rounded-full border px-3 py-1.5 text-xs font-medium transition"
+                  [class]="
+                    isFlavourSelected(f)
+                      ? 'border-forest-700 bg-forest-700 text-white'
+                      : 'border-charcoal-200 text-charcoal-600 hover:border-forest-400'
+                  "
+                >
+                  {{ f }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (facets()?.sizes?.length) {
+          <div>
+            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Size</h3>
+            <div class="flex flex-wrap gap-2">
+              @for (s of facets()!.sizes; track s) {
+                <button
+                  type="button"
+                  (click)="toggleSize(s)"
+                  [attr.aria-pressed]="isSizeSelected(s)"
+                  class="rounded-full border px-3 py-1.5 text-xs font-medium transition"
+                  [class]="
+                    isSizeSelected(s)
+                      ? 'border-forest-700 bg-forest-700 text-white'
+                      : 'border-charcoal-200 text-charcoal-600 hover:border-forest-400'
+                  "
+                >
+                  {{ s }}
+                </button>
+              }
+            </div>
+          </div>
+        }
 
         <div>
           <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Price Range</h3>
@@ -84,6 +182,33 @@
         </select>
       </div>
 
+      @if (!loading()) {
+        <div class="mb-5 flex flex-wrap items-center gap-2">
+          <span class="text-sm text-charcoal-500">
+            {{ totalElements() }} product{{ totalElements() === 1 ? '' : 's' }}
+          </span>
+          @if (activeChips().length > 0) {
+            <span class="text-charcoal-300">|</span>
+            @for (chip of activeChips(); track chip.label) {
+              <button
+                type="button"
+                (click)="chip.clear()"
+                class="inline-flex items-center gap-1.5 rounded-full border border-forest-200 bg-forest-50 py-1 pl-3 pr-2 text-xs font-medium text-forest-800 transition hover:border-forest-400"
+                [attr.aria-label]="'Remove filter ' + chip.label"
+              >
+                {{ chip.label }}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
+            }
+            <button type="button" (click)="clearFilters()" class="text-xs font-semibold text-charcoal-500 underline-offset-2 hover:text-forest-700 hover:underline">
+              Clear all
+            </button>
+          }
+        </div>
+      }
+
       @if (loading()) {
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
           @for (i of [1, 2, 3, 4, 5, 6]; track i) {
@@ -121,17 +246,33 @@
         </button>
       </div>
 
-      <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Goal / Category</h3>
-      <div class="mb-6 flex flex-wrap gap-2">
-        @for (c of categories(); track c.id) {
-          <button
-            type="button"
-            (click)="setCategory(c.slug)"
-            class="rounded-full border px-3 py-1.5 text-sm"
-            [class]="category === c.slug ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-200 text-charcoal-600'"
-          >
-            {{ c.name }}
-          </button>
+      <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Category</h3>
+      <div class="mb-6 space-y-3">
+        @for (node of categoryTree(); track node.parent.id) {
+          <div>
+            <button
+              type="button"
+              (click)="setCategory(node.parent.slug)"
+              class="rounded-full border px-3 py-1.5 text-sm font-semibold"
+              [class]="category === node.parent.slug ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-300 text-charcoal-800'"
+            >
+              {{ node.parent.name }}
+            </button>
+            @if (node.kids.length > 0) {
+              <div class="mt-2 flex flex-wrap gap-2 pl-3">
+                @for (kid of node.kids; track kid.id) {
+                  <button
+                    type="button"
+                    (click)="setCategory(kid.slug)"
+                    class="rounded-full border px-3 py-1 text-[13px]"
+                    [class]="category === kid.slug ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-200 text-charcoal-600'"
+                  >
+                    {{ kid.name }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
         }
       </div>
 

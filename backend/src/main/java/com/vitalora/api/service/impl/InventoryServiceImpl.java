@@ -5,6 +5,7 @@ import com.vitalora.api.dto.inventory.InventoryResponse;
 import com.vitalora.api.dto.inventory.StockUpdateRequest;
 import com.vitalora.api.entity.Inventory;
 import com.vitalora.api.entity.Product;
+import com.vitalora.api.entity.ProductVariant;
 import com.vitalora.api.exception.ResourceNotFoundException;
 import com.vitalora.api.mapper.ProductMapper;
 import com.vitalora.api.repository.InventoryRepository;
@@ -31,9 +32,9 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public InventoryResponse updateStock(Long productId, StockUpdateRequest request) {
-        Inventory inventory = inventoryRepository.findByProductId(productId)
-                .orElseThrow(() -> ResourceNotFoundException.of("Inventory for product", productId));
+    public InventoryResponse updateStock(Long variantId, StockUpdateRequest request) {
+        Inventory inventory = inventoryRepository.findByVariantId(variantId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Inventory for variant", variantId));
 
         inventory.setStockQuantity(request.stockQuantity());
         if (request.lowStockThreshold() != null) {
@@ -43,17 +44,25 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     private InventoryResponse toResponse(Inventory inventory) {
-        Product product = inventory.getProduct();
+        ProductVariant variant = inventory.getVariant();
+        Product product = variant.getProduct();
+        String variantImage = variant.getImageUrl();
+        String image = (variantImage != null && !variantImage.isBlank())
+                ? variantImage
+                : ProductMapper.primaryImageUrl(product);
         return new InventoryResponse(
+                variant.getId(),
                 product.getId(),
                 product.getName(),
-                product.getSku(),
-                ProductMapper.primaryImageUrl(product),
+                product.getBrand() != null ? product.getBrand().getName() : null,
+                variant.getLabel(),
+                variant.getSku(),
+                image,
                 inventory.getStockQuantity(),
                 inventory.getLowStockThreshold(),
                 inventory.isLowStock(),
                 inventory.isOutOfStock(),
-                product.isActive()
+                product.isActive() && variant.isActive()
         );
     }
 }

@@ -25,9 +25,9 @@ public class AdminInventoryController {
         return ResponseEntity.ok(inventoryService.search(q, lowStockOnly, page, size));
     }
 
-    @PatchMapping("/{productId}")
-    public ResponseEntity<InventoryResponse> updateStock(@PathVariable Long productId,
+    @PatchMapping("/{variantId}")
+    public ResponseEntity<InventoryResponse> updateStock(@PathVariable Long variantId,
                                                             @Valid @RequestBody StockUpdateRequest request) {
-        return ResponseEntity.ok(inventoryService.updateStock(productId, request));
+        return ResponseEntity.ok(inventoryService.updateStock(variantId, request));
     }
 }

@@ -7,6 +7,10 @@ export interface Category {
   active: boolean;
   displayOrder: number;
   productCount: number;
+  /** Null for a top-level category. Nesting drives the header mega menu. */
+  parentId: number | null;
+  parentName: string | null;
+  children: Category[];
 }
 
 export interface CategoryRequest {
@@ -14,6 +18,7 @@ export interface CategoryRequest {
   slug?: string;
   description?: string;
   imageUrl?: string;
+  parentId?: number | null;
   active?: boolean;
   displayOrder?: number;
 }

@@ -74,32 +74,45 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal subtotal = BigDecimal.ZERO;
 
         for (CartItem cartItem : cart.getItems()) {
-            Product product = cartItem.getProduct();
-            int availableStock = product.getInventory() != null ? product.getInventory().getStockQuantity() : 0;
+            ProductVariant variant = cartItem.getVariant();
+            Product product = variant.getProduct();
+            Inventory inventory = variant.getInventory();
+            int availableStock = inventory != null ? inventory.getStockQuantity() : 0;
 
-            if (!product.isActive()) {
-                throw new BadRequestException("\"" + product.getName() + "\" is no longer available. Please remove it from your cart.");
+            String label = variant.getLabel();
+            String displayName = label == null ? product.getName() : product.getName() + " (" + label + ")";
+
+            if (!product.isActive() || !variant.isActive()) {
+                throw new BadRequestException(displayName + " is no longer available. Please remove it from your cart.");
             }
             if (cartItem.getQuantity() > availableStock) {
-                throw new BadRequestException("Only " + availableStock + " unit(s) of \"" + product.getName() +
-                        "\" left in stock. Please update your cart.");
+                throw new BadRequestException("Only " + availableStock + " unit(s) of " + displayName +
+                        " left in stock. Please update your cart.");
             }
 
-            BigDecimal unitPrice = product.getEffectivePrice();
+            BigDecimal unitPrice = variant.getEffectivePrice();
             BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity()));
             subtotal = subtotal.add(lineTotal);
 
+            String variantImage = variant.getImageUrl();
+            String image = (variantImage != null && !variantImage.isBlank())
+                    ? variantImage
+                    : ProductMapper.primaryImageUrl(product);
+
             orderItems.add(OrderItem.builder()
                     .product(product)
+                    .variant(variant)
                     .productName(product.getName())
-                    .productImage(ProductMapper.primaryImageUrl(product))
-                    .sku(product.getSku())
+                    .variantLabel(label)
+                    .brandName(product.getBrand() != null ? product.getBrand().getName() : null)
+                    .productImage(image)
+                    .sku(variant.getSku())
                     .unitPrice(unitPrice)
                     .quantity(cartItem.getQuantity())
                     .lineTotal(lineTotal)
                     .build());
 
-            product.getInventory().setStockQuantity(availableStock - cartItem.getQuantity());
+            inventory.setStockQuantity(availableStock - cartItem.getQuantity());
         }
 
         CommerceSettings commerce = cmsService.getCommerceSettings();

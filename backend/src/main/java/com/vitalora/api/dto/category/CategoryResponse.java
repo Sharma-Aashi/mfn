@@ -1,5 +1,7 @@
 package com.vitalora.api.dto.category;
 
+import java.util.List;
+
 public record CategoryResponse(
         Long id,
         String name,
@@ -8,6 +10,9 @@ public record CategoryResponse(
         String imageUrl,
         boolean active,
         int displayOrder,
-        long productCount
+        long productCount,
+        Long parentId,
+        String parentName,
+        List<CategoryResponse> children
 ) {
 }

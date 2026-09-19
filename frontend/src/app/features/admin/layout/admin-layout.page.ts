@@ -132,6 +132,7 @@ export class AdminLayoutPage {
   protected readonly navItems: AdminNavItem[] = [
     { label: 'Products', path: '/admin/products', icon: 'box' },
     { label: 'Categories', path: '/admin/categories', icon: 'grid' },
+    { label: 'Brands', path: '/admin/brands', icon: 'stack' },
     { label: 'Inventory', path: '/admin/inventory', icon: 'stack' },
     { label: 'Reviews', path: '/admin/reviews', icon: 'star' },
     { label: 'FAQs', path: '/admin/faqs', icon: 'help' },

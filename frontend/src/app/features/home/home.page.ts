@@ -1,9 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Brand } from '../../core/models/brand.model';
 import { Category } from '../../core/models/category.model';
 import { ProductSummary } from '../../core/models/product.model';
 import { Banner, HomeContent } from '../../core/models/cms.model';
+import { BrandService } from '../../core/services/brand.service';
 import { CategoryService } from '../../core/services/category.service';
 import { CmsService } from '../../core/services/cms.service';
 import { ProductService } from '../../core/services/product.service';
@@ -37,6 +39,7 @@ const USP_ICONS: Record<string, string> = {
 export class HomePage {
   private readonly productService = inject(ProductService);
   private readonly categoryService = inject(CategoryService);
+  private readonly brandService = inject(BrandService);
   private readonly cmsService = inject(CmsService);
   private readonly reviewService = inject(ReviewService);
   private readonly toast = inject(ToastService);
@@ -44,6 +47,18 @@ export class HomePage {
 
   protected readonly content = signal<HomeContent | null>(null);
   protected readonly categories = signal<Category[]>([]);
+  protected readonly brands = signal<Brand[]>([]);
+
+  /**
+   * Top-level product groups only. The API returns the whole flat tree, and
+   * tiling all of it would put every leaf category on the home page.
+   * "Shop by Goal" is left out: it is a different axis, reachable from the nav.
+   */
+  protected readonly topCategories = computed(() =>
+    this.categories()
+      .filter((c) => c.parentId === null && c.slug !== 'shop-by-goal')
+      .sort((a, b) => a.displayOrder - b.displayOrder),
+  );
   protected readonly featured = signal<ProductSummary[]>([]);
   protected readonly bestSellers = signal<ProductSummary[]>([]);
   protected readonly banners = signal<Banner[]>([]);
@@ -66,6 +81,9 @@ export class HomePage {
   private load(): void {
     this.cmsService.getHome().subscribe((c) => this.content.set(c));
     this.categoryService.getAllActive().subscribe((c) => this.categories.set(c));
+    // Featured brands only - the full list has its own page, and a wall of
+    // every logo tells a shopper nothing.
+    this.brandService.getFeatured().subscribe((b) => this.brands.set(b));
     this.productService.getFeatured().subscribe((p) => this.featured.set(p));
     this.productService.getBestSellers().subscribe((p) => {
       this.bestSellers.set(p);

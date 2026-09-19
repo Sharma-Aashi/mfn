@@ -1,6 +1,6 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { WishlistItem } from '../../../core/models/wishlist.model';
 import { CartService } from '../../../core/services/cart.service';
 import { SeoService } from '../../../core/services/seo.service';
@@ -19,6 +19,7 @@ export class WishlistPage {
   protected readonly wishlistService = inject(WishlistService);
   private readonly cartService = inject(CartService);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
   constructor() {
     inject(SeoService).update('My Wishlist');
@@ -30,6 +31,13 @@ export class WishlistPage {
   }
 
   protected addToCart(item: WishlistItem): void {
-    this.cartService.addItem(item.productId, 1).subscribe(() => this.toast.success(`${item.productName} added to cart.`));
+    // A product with several options cannot be added blind - send them to pick one.
+    if (item.multipleVariants || item.defaultVariantId === null) {
+      this.router.navigate(['/products', item.productSlug]);
+      return;
+    }
+    this.cartService
+      .addItem(item.defaultVariantId, 1, item.productId)
+      .subscribe(() => this.toast.success(`${item.productName} added to cart.`));
   }
 }

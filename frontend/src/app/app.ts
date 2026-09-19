@@ -9,6 +9,7 @@ import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confi
 import { QuickViewModalComponent } from './shared/components/quick-view-modal/quick-view-modal.component';
 import { CartService } from './core/services/cart.service';
 import { SiteSettingsService } from './core/services/site-settings.service';
+import { ThemeService } from './core/services/theme.service';
 import { WishlistService } from './core/services/wishlist.service';
 
 @Component({
@@ -29,6 +30,8 @@ export class App {
   private readonly cartService = inject(CartService);
   private readonly wishlistService = inject(WishlistService);
   private readonly siteSettings = inject(SiteSettingsService);
+  // Injected for its effect: it keeps data-theme on <html> in step with settings.
+  private readonly theme = inject(ThemeService);
 
   private readonly url = toSignal(
     this.router.events.pipe(

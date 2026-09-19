@@ -72,6 +72,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .imageUrl(request.imageUrl())
                 .active(request.active() == null || request.active())
                 .displayOrder(request.displayOrder() != null ? request.displayOrder() : 0)
+                .parent(resolveParent(request.parentId(), null))
                 .build();
 
         return toResponseWithCount(categoryRepository.save(category));
@@ -101,6 +102,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (request.displayOrder() != null) {
             category.setDisplayOrder(request.displayOrder());
         }
+        category.setParent(resolveParent(request.parentId(), id));
 
         return toResponseWithCount(categoryRepository.save(category));
     }
@@ -109,6 +111,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void delete(Long id) {
         Category category = findEntity(id);
+        long childCount = categoryRepository.countByParentId(id);
+        if (childCount > 0) {
+            throw new BadRequestException("Cannot delete a category that still has " + childCount +
+                    " sub-categorie(s). Remove or move those first.");
+        }
         long productCount = productRepository.countByCategories_Id(id);
         if (productCount > 0) {
             throw new BadRequestException("Cannot delete a category that still has " + productCount +
@@ -134,13 +141,33 @@ public class CategoryServiceImpl implements CategoryService {
         return toResponseWithCount(categoryRepository.save(category));
     }
 
+    /**
+     * Resolves the parent, refusing a category that would become its own ancestor.
+     * Only two levels are expected in practice, but the walk costs nothing and a
+     * cycle here would hang every menu render.
+     */
+    private Category resolveParent(Long parentId, Long selfId) {
+        if (parentId == null) {
+            return null;
+        }
+        if (parentId.equals(selfId)) {
+            throw new BadRequestException("A category cannot be its own parent.");
+        }
+        Category parent = findEntity(parentId);
+        for (Category ancestor = parent.getParent(); ancestor != null; ancestor = ancestor.getParent()) {
+            if (ancestor.getId().equals(selfId)) {
+                throw new BadRequestException("That parent would create a loop in the category tree.");
+            }
+        }
+        return parent;
+    }
+
     private Category findEntity(Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("Category", id));
     }
 
     private CategoryResponse toResponseWithCount(Category category) {
-        long count = productRepository.countByCategories_Id(category.getId());
-        return CategoryMapper.toResponse(category, count);
+        return CategoryMapper.toResponse(category, productRepository.countInCategoryTree(category.getId()));
     }
 }

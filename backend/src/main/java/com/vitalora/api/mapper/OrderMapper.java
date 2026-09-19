@@ -45,6 +45,8 @@ public final class OrderMapper {
                 item.getProduct() != null ? item.getProduct().getId() : null,
                 item.getProduct() != null ? item.getProduct().getSlug() : null,
                 item.getProductName(),
+                item.getBrandName(),
+                item.getVariantLabel(),
                 item.getProductImage(),
                 item.getSku(),
                 item.getUnitPrice(),

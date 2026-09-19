@@ -8,6 +8,8 @@ public record CategoryRequest(
         @Size(max = 150) String slug,
         String description,
         String imageUrl,
+        /** Null keeps the category top-level. */
+        Long parentId,
         Boolean active,
         Integer displayOrder
 ) {

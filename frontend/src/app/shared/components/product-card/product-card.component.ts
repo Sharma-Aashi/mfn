@@ -1,5 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
@@ -44,7 +44,7 @@ import { MediaUrlPipe } from '../../../core/pipes/media-url.pipe';
           @if (product().newArrival) {
             <span class="rounded-full bg-beige-500 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-charcoal-900">New</span>
           }
-          @if (product().salePrice) {
+          @if (discountPercent() > 0) {
             <span class="rounded-full bg-charcoal-800 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
               {{ discountPercent() }}% off
             </span>
@@ -78,34 +78,62 @@ import { MediaUrlPipe } from '../../../core/pipes/media-url.pipe';
       </div>
 
       <div class="flex flex-1 flex-col gap-2 p-4">
+        @if (product().brand; as brand) {
+          <a
+            [routerLink]="['/brands', brand.slug]"
+            class="text-[11px] font-semibold uppercase tracking-[0.12em] text-charcoal-500 hover:text-forest-700"
+          >
+            {{ brand.name }}
+          </a>
+        }
+
         <a [routerLink]="['/products', product().slug]" class="font-display text-base font-semibold leading-snug text-charcoal-900 hover:text-forest-700">
           {{ product().name }}
         </a>
-        @if (product().shortDescription) {
-          <p class="line-clamp-2 text-sm text-charcoal-500">{{ product().shortDescription }}</p>
+
+        @if (product().multipleVariants) {
+          <span class="w-fit rounded-full bg-beige-100 px-2 py-0.5 text-[11px] font-medium text-charcoal-600">
+            {{ product().variantCount }} options
+          </span>
         }
 
         <app-star-rating [rating]="product().avgRating" [size]="14" [showValue]="true" />
 
-        <div class="mt-auto flex items-center justify-between pt-2">
+        <div class="mt-auto flex items-center justify-between gap-2 pt-2">
           <div class="flex items-baseline gap-2">
-            <span class="font-display text-lg font-semibold text-forest-800">{{ product().effectivePrice | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
-            @if (product().salePrice) {
+            @if (product().multipleVariants) {
+              <span class="text-xs text-charcoal-500">from</span>
+            }
+            <span class="font-display text-lg font-semibold text-forest-800">
+              {{ displayPrice() | currency: 'INR' : 'symbol' : '1.0-0' }}
+            </span>
+            @if (!product().multipleVariants && product().salePrice) {
               <span class="text-sm text-charcoal-400 line-through">{{ product().price | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
             }
           </div>
-          <button
-            type="button"
-            (click)="onAddToCart($event)"
-            [disabled]="!product().inStock || adding()"
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-forest-700 text-white transition hover:bg-forest-800 disabled:cursor-not-allowed disabled:bg-charcoal-200"
-            [attr.aria-label]="'Add ' + product().name + ' to cart'"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
-              <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
-            </svg>
-          </button>
+
+          @if (product().multipleVariants) {
+            <!-- Flavour and size have to be chosen before anything can go in the cart. -->
+            <a
+              [routerLink]="['/products', product().slug]"
+              class="rounded-full bg-forest-700 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-forest-800"
+            >
+              Choose
+            </a>
+          } @else {
+            <button
+              type="button"
+              (click)="onAddToCart($event)"
+              [disabled]="!canQuickAdd() || adding()"
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-forest-700 text-white transition hover:bg-forest-800 disabled:cursor-not-allowed disabled:bg-charcoal-200"
+              [attr.aria-label]="'Add ' + product().name + ' to cart'"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+              </svg>
+            </button>
+          }
         </div>
       </div>
     </article>
@@ -120,6 +148,15 @@ export class ProductCardComponent {
 
   product = input.required<ProductSummary>();
 
+  /** Multi-variant cards quote the cheapest option instead of a base price. */
+  protected readonly displayPrice = computed(() =>
+    this.product().multipleVariants ? this.product().fromPrice : this.product().effectivePrice,
+  );
+
+  protected readonly canQuickAdd = computed(
+    () => this.product().inStock && this.product().defaultVariantId !== null,
+  );
+
   protected adding = () => this._adding;
   private _adding = false;
 
@@ -133,17 +170,25 @@ export class ProductCardComponent {
     return this.wishlistService.productIds().has(this.product().id);
   }
 
+  /**
+   * Only meaningful for a single-variant product: with several variants the
+   * product's own sale price says nothing about what each option costs.
+   */
   protected discountPercent(): number {
     const p = this.product();
-    if (!p.salePrice) return 0;
+    if (p.multipleVariants || !p.salePrice) return 0;
     return Math.round(((p.price - p.salePrice) / p.price) * 100);
   }
 
   protected onAddToCart(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
+    const variantId = this.product().defaultVariantId;
+    if (variantId === null) {
+      return;
+    }
     this._adding = true;
-    this.cartService.addItem(this.product().id, 1).subscribe({
+    this.cartService.addItem(variantId, 1, this.product().id).subscribe({
       next: () => {
         this._adding = false;
         this.toast.success(`${this.product().name} added to cart.`);

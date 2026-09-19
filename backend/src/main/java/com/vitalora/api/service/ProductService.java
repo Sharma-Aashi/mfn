@@ -1,6 +1,8 @@
 package com.vitalora.api.service;
 
 import com.vitalora.api.dto.common.PageResponse;
+import com.vitalora.api.dto.product.ProductFacetsResponse;
+import com.vitalora.api.dto.product.ProductFilter;
 import com.vitalora.api.dto.product.ProductImageOrderRequest;
 import com.vitalora.api.dto.product.ProductImageUpdateRequest;
 import com.vitalora.api.dto.product.ProductRequest;
@@ -8,13 +10,13 @@ import com.vitalora.api.dto.product.ProductResponse;
 import com.vitalora.api.dto.product.ProductSummaryResponse;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductService {
 
-    PageResponse<ProductSummaryResponse> search(String q, String category, BigDecimal minPrice, BigDecimal maxPrice,
-                                                 Double minRating, String sort, int page, int size);
+    PageResponse<ProductSummaryResponse> search(ProductFilter filter, int page, int size);
+
+    ProductFacetsResponse getFacets();
 
     PageResponse<ProductResponse> searchForAdmin(String q, Boolean active, String category, int page, int size, String sort);
 

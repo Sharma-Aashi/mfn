@@ -1,8 +1,8 @@
-import { DatePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ProductDetail } from '../../../../core/models/product.model';
+import { ProductDetail, ProductVariant } from '../../../../core/models/product.model';
 import { Review, ReviewSummary } from '../../../../core/models/review.model';
 import { ProductSummary } from '../../../../core/models/product.model';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -23,7 +23,7 @@ type TabKey = 'description' | 'benefits' | 'ingredients' | 'nutrition' | 'usage'
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe, StarRatingComponent, QuantityStepperComponent, ProductCardComponent, MediaUrlPipe],
+  imports: [RouterLink, FormsModule, DatePipe, CurrencyPipe, StarRatingComponent, QuantityStepperComponent, ProductCardComponent, MediaUrlPipe],
   templateUrl: './product-detail.page.html',
 })
 export class ProductDetailPage {
@@ -42,6 +42,7 @@ export class ProductDetailPage {
   protected readonly notFound = signal(false);
   protected readonly activeImage = signal(0);
   protected readonly qty = signal(1);
+  protected readonly selectedVariantId = signal<number | null>(null);
   protected readonly activeTab = signal<TabKey>('description');
   protected readonly related = signal<ProductSummary[]>([]);
 
@@ -66,6 +67,50 @@ export class ProductDetailPage {
     { key: 'shipping', label: 'Shipping & Returns' },
   ];
 
+  /** Active variants in display order; the only ones a customer may pick. */
+  protected readonly variants = computed<ProductVariant[]>(() =>
+    (this.product()?.variants ?? []).filter((v) => v.active),
+  );
+
+  protected readonly selectedVariant = computed<ProductVariant | null>(() => {
+    const id = this.selectedVariantId();
+    const list = this.variants();
+    return list.find((v) => v.id === id) ?? list[0] ?? null;
+  });
+
+  /** Distinct flavours, in variant order. Empty when the product has no flavour axis. */
+  protected readonly flavourOptions = computed<string[]>(() =>
+    [...new Set(this.variants().map((v) => v.flavour).filter((f): f is string => !!f))],
+  );
+
+  /** Distinct size labels, in variant order. Empty when the product has no size axis. */
+  protected readonly sizeOptions = computed<string[]>(() =>
+    [...new Set(this.variants().map((v) => v.sizeLabel).filter((s): s is string => !!s))],
+  );
+
+  /** True once the product varies on something a customer must choose. */
+  protected readonly hasChoices = computed(
+    () => this.flavourOptions().length > 1 || this.sizeOptions().length > 1,
+  );
+
+  /**
+   * A variant can carry its own photo (a flavour tub looks different), so it
+   * leads the gallery rather than hiding behind the product shots. Falls back
+   * to the product images when the variant has none.
+   */
+  protected readonly galleryImages = computed<{ url: string; alt: string }[]>(() => {
+    const p = this.product();
+    if (!p) return [];
+    const shots = p.images.map((i) => ({ url: i.imageUrl, alt: i.altText || p.name }));
+    const variant = this.selectedVariant();
+    if (!variant?.imageUrl) return shots;
+    const alt = variant.label ? `${p.name} - ${variant.label}` : p.name;
+    return [{ url: variant.imageUrl, alt }, ...shots.filter((s) => s.url !== variant.imageUrl)];
+  });
+
+  protected readonly selectedFlavour = computed(() => this.selectedVariant()?.flavour ?? null);
+  protected readonly selectedSize = computed(() => this.selectedVariant()?.sizeLabel ?? null);
+
   constructor() {
     this.route.paramMap.subscribe((params) => {
       const slug = params.get('slug');
@@ -77,11 +122,16 @@ export class ProductDetailPage {
     this.notFound.set(false);
     this.activeImage.set(0);
     this.qty.set(1);
+    this.selectedVariantId.set(null);
     this.showReviewForm.set(false);
 
     this.productService.getBySlug(slug).subscribe({
       next: (p) => {
         this.product.set(p);
+        // Open on the flagged default, falling back to the first active variant.
+        const initial = p.variants.find((v) => v.id === p.defaultVariantId && v.active)
+          ?? p.variants.find((v) => v.active);
+        this.selectedVariantId.set(initial?.id ?? null);
         this.seo.update(p.name, p.shortDescription ?? undefined);
         this.seo.setJsonLd({
           '@context': 'https://schema.org',
@@ -98,12 +148,23 @@ export class ProductDetailPage {
             ratingValue: p.avgRating,
             reviewCount: p.reviewCount,
           } : undefined,
-          offers: {
-            '@type': 'Offer',
-            priceCurrency: p.currency,
-            price: p.effectivePrice,
-            availability: p.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-          },
+          // Several variants means several prices, so the listing advertises a
+          // range rather than pretending there is one price.
+          offers: p.variants.filter((v) => v.active).length > 1
+            ? {
+                '@type': 'AggregateOffer',
+                priceCurrency: p.currency,
+                lowPrice: p.fromPrice,
+                highPrice: Math.max(...p.variants.filter((v) => v.active).map((v) => v.effectivePrice)),
+                offerCount: p.variants.filter((v) => v.active).length,
+                availability: p.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+              }
+            : {
+                '@type': 'Offer',
+                priceCurrency: p.currency,
+                price: p.fromPrice,
+                availability: p.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+              },
         });
         this.loadReviews(p.id);
         this.productService.getRelated(slug).subscribe((r) => this.related.set(r));
@@ -121,6 +182,50 @@ export class ProductDetailPage {
     });
   }
 
+  /** Picking a flavour keeps the current size when that pairing exists, else falls to its first. */
+  protected selectFlavour(flavour: string): void {
+    const size = this.selectedSize();
+    const match =
+      this.variants().find((v) => v.flavour === flavour && v.sizeLabel === size) ??
+      this.variants().find((v) => v.flavour === flavour);
+    if (match) this.selectVariant(match.id);
+  }
+
+  protected selectSize(sizeLabel: string): void {
+    const flavour = this.selectedFlavour();
+    const match =
+      this.variants().find((v) => v.sizeLabel === sizeLabel && v.flavour === flavour) ??
+      this.variants().find((v) => v.sizeLabel === sizeLabel);
+    if (match) this.selectVariant(match.id);
+  }
+
+  private selectVariant(id: number): void {
+    this.selectedVariantId.set(id);
+    // Bring whatever photo now leads the gallery into view.
+    this.activeImage.set(0);
+  }
+
+  /**
+   * A combination that no variant covers is unbuyable, so the pill is shown
+   * struck through rather than hidden - a missing option reads as a bug.
+   */
+  protected flavourAvailable(flavour: string): boolean {
+    return this.variants().some((v) => v.flavour === flavour && v.inStock);
+  }
+
+  protected sizeAvailable(sizeLabel: string): boolean {
+    const flavour = this.selectedFlavour();
+    const forPair = this.variants().filter((v) => v.sizeLabel === sizeLabel && v.flavour === flavour);
+    const candidates = forPair.length > 0 ? forPair : this.variants().filter((v) => v.sizeLabel === sizeLabel);
+    return candidates.some((v) => v.inStock);
+  }
+
+  protected variantDiscountPercent(): number {
+    const v = this.selectedVariant();
+    if (!v?.salePrice || v.price <= 0) return 0;
+    return Math.round(((v.price - v.salePrice) / v.price) * 100);
+  }
+
   protected reviewPageNumbers(): number[] {
     return Array.from({ length: this.reviewsTotalPages() }, (_, i) => i);
   }
@@ -132,14 +237,17 @@ export class ProductDetailPage {
 
   protected addToCart(): void {
     const p = this.product();
-    if (!p) return;
-    this.cartService.addItem(p.id, this.qty()).subscribe(() => this.toast.success(`${p.name} added to cart.`));
+    const v = this.selectedVariant();
+    if (!p || !v) return;
+    const name = v.label ? `${p.name} (${v.label})` : p.name;
+    this.cartService.addItem(v.id, this.qty(), p.id).subscribe(() => this.toast.success(`${name} added to cart.`));
   }
 
   protected buyNow(): void {
     const p = this.product();
-    if (!p) return;
-    this.cartService.addItem(p.id, this.qty()).subscribe(() => this.router.navigate(['/checkout']));
+    const v = this.selectedVariant();
+    if (!p || !v) return;
+    this.cartService.addItem(v.id, this.qty(), p.id).subscribe(() => this.router.navigate(['/checkout']));
   }
 
   protected toggleWishlist(): void {

@@ -7,5 +7,5 @@ import com.vitalora.api.dto.inventory.StockUpdateRequest;
 public interface InventoryService {
     PageResponse<InventoryResponse> search(String q, boolean lowStockOnly, int page, int size);
 
-    InventoryResponse updateStock(Long productId, StockUpdateRequest request);
+    InventoryResponse updateStock(Long variantId, StockUpdateRequest request);
 }

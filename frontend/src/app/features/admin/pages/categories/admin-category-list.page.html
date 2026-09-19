@@ -27,8 +27,16 @@
               <input type="file" accept="image/*" class="hidden" (change)="onImageSelected($event, c)" />
             </label>
             <div class="min-w-0 flex-1">
+              @if (c.parentName) {
+                <p class="truncate text-[11px] font-semibold uppercase tracking-wide text-charcoal-400">{{ c.parentName }}</p>
+              }
               <p class="truncate font-display text-base font-semibold text-charcoal-900">{{ c.name }}</p>
-              <p class="text-xs text-charcoal-400">{{ c.productCount }} products • order {{ c.displayOrder }}</p>
+              <p class="text-xs text-charcoal-400">
+                {{ c.productCount }} products &middot; order {{ c.displayOrder }}
+                @if (!c.parentName && childrenOf(c.id).length > 0) {
+                  &middot; {{ childrenOf(c.id).length }} sub
+                }
+              </p>
             </div>
           </div>
           @if (c.description) {
@@ -65,6 +73,18 @@
           <div>
             <label for="c-desc" class="form-label">Description</label>
             <textarea id="c-desc" formControlName="description" rows="3" class="form-input"></textarea>
+          </div>
+          <div>
+            <label for="c-parent" class="form-label">Parent category</label>
+            <select id="c-parent" formControlName="parentId" class="form-input">
+              <option [ngValue]="null">None (top level)</option>
+              @for (parent of parentOptions(); track parent.id) {
+                <option [ngValue]="parent.id">{{ parent.name }}</option>
+              }
+            </select>
+            <p class="mt-1 text-xs text-charcoal-400">
+              A child appears under its parent in the header menu. Two levels deep is the maximum.
+            </p>
           </div>
           <div>
             <label for="c-order" class="form-label">Display Order</label>

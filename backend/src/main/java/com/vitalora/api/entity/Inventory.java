@@ -20,8 +20,8 @@ public class Inventory {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false, unique = true)
-    private Product product;
+    @JoinColumn(name = "variant_id", nullable = false, unique = true)
+    private ProductVariant variant;
 
     @Column(name = "stock_quantity", nullable = false)
     @Builder.Default

@@ -2,21 +2,29 @@ package com.vitalora.api.service.impl;
 
 import com.vitalora.api.config.AppProperties;
 import com.vitalora.api.dto.common.PageResponse;
+import com.vitalora.api.dto.product.ProductFacetsResponse;
+import com.vitalora.api.dto.product.ProductFilter;
 import com.vitalora.api.dto.product.ProductImageOrderRequest;
 import com.vitalora.api.dto.product.ProductImageUpdateRequest;
 import com.vitalora.api.dto.product.ProductRequest;
 import com.vitalora.api.dto.product.ProductResponse;
 import com.vitalora.api.dto.product.ProductSummaryResponse;
+import com.vitalora.api.dto.product.ProductVariantRequest;
+import com.vitalora.api.entity.Brand;
 import com.vitalora.api.entity.Category;
 import com.vitalora.api.entity.Inventory;
 import com.vitalora.api.entity.Product;
 import com.vitalora.api.entity.ProductImage;
+import com.vitalora.api.entity.ProductVariant;
 import com.vitalora.api.exception.BadRequestException;
 import com.vitalora.api.exception.DuplicateResourceException;
 import com.vitalora.api.exception.ResourceNotFoundException;
 import com.vitalora.api.mapper.ProductMapper;
+import com.vitalora.api.repository.BrandRepository;
 import com.vitalora.api.repository.CategoryRepository;
 import com.vitalora.api.repository.ProductRepository;
+import com.vitalora.api.repository.ProductVariantRepository;
+import com.vitalora.api.mapper.BrandMapper;
 import com.vitalora.api.service.FileStorageService;
 import com.vitalora.api.service.ProductService;
 import com.vitalora.api.specification.ProductSpecification;
@@ -31,8 +39,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -41,25 +52,45 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final BrandRepository brandRepository;
+    private final ProductVariantRepository variantRepository;
     private final FileStorageService fileStorageService;
     private final AppProperties appProperties;
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<ProductSummaryResponse> search(String q, String category, BigDecimal minPrice,
-                                                         BigDecimal maxPrice, Double minRating, String sort,
-                                                         int page, int size) {
+    public PageResponse<ProductSummaryResponse> search(ProductFilter filter, int page, int size) {
+        String sort = filter.sort();
         Specification<Product> spec = and(
                 ProductSpecification.isActive(true),
-                ProductSpecification.search(q),
-                ProductSpecification.hasCategorySlug(category),
-                ProductSpecification.priceBetween(minPrice, maxPrice),
-                ProductSpecification.minRating(minRating),
+                ProductSpecification.search(filter.q()),
+                ProductSpecification.hasCategorySlugOrDescendant(filter.category()),
+                ProductSpecification.hasBrandSlugs(filter.brands()),
+                ProductSpecification.hasFlavours(filter.flavours()),
+                ProductSpecification.hasSizeLabels(filter.sizes()),
+                ProductSpecification.priceBetween(filter.minPrice(), filter.maxPrice()),
+                ProductSpecification.minRating(filter.minRating()),
+                ProductSpecification.inStockOnly(Boolean.TRUE.equals(filter.inStockOnly())),
                 priceOrderSpec(sort)
         );
 
         Pageable pageable = PageRequest.of(page, size, resolveSort(sort));
         return PageResponse.of(productRepository.findAll(spec, pageable), ProductMapper::toSummary);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductFacetsResponse getFacets() {
+        var brands = brandRepository.findByActiveTrueOrderByDisplayOrderAscNameAsc().stream()
+                .map(BrandMapper::toSummary)
+                .toList();
+        return new ProductFacetsResponse(
+                brands,
+                variantRepository.findDistinctFlavours(),
+                variantRepository.findDistinctSizeLabels(),
+                variantRepository.findMinEffectivePrice(),
+                variantRepository.findMaxEffectivePrice()
+        );
     }
 
     @Override
@@ -195,17 +226,11 @@ public class ProductServiceImpl implements ProductService {
                 .bestSeller(Boolean.TRUE.equals(request.bestSeller()))
                 .newArrival(Boolean.TRUE.equals(request.newArrival()))
                 .tags(request.tags())
+                .brand(resolveBrand(request.brandId()))
                 .categories(resolveCategories(request.categoryIds()))
                 .build();
 
-        Inventory inventory = Inventory.builder()
-                .product(product)
-                .stockQuantity(request.stockQuantity())
-                .lowStockThreshold(request.lowStockThreshold() != null
-                        ? request.lowStockThreshold()
-                        : appProperties.getInventory().getDefaultLowStockThreshold())
-                .build();
-        product.setInventory(inventory);
+        syncVariants(product, request);
 
         return ProductMapper.toResponse(productRepository.save(product));
     }
@@ -244,19 +269,123 @@ public class ProductServiceImpl implements ProductService {
         product.setBestSeller(Boolean.TRUE.equals(request.bestSeller()));
         product.setNewArrival(Boolean.TRUE.equals(request.newArrival()));
         product.setTags(request.tags());
+        product.setBrand(resolveBrand(request.brandId()));
         product.setCategories(resolveCategories(request.categoryIds()));
 
-        Inventory inventory = product.getInventory();
-        if (inventory == null) {
-            inventory = Inventory.builder().product(product).build();
-            product.setInventory(inventory);
-        }
-        inventory.setStockQuantity(request.stockQuantity());
-        if (request.lowStockThreshold() != null) {
-            inventory.setLowStockThreshold(request.lowStockThreshold());
-        }
+        syncVariants(product, request);
 
         return ProductMapper.toResponse(productRepository.save(product));
+    }
+
+    private Brand resolveBrand(Long brandId) {
+        return brandRepository.findById(brandId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Brand", brandId));
+    }
+
+    /**
+     * Brings the product's variants in line with the request.
+     *
+     * <p>An empty variant list means "single-SKU product": exactly one default
+     * variant is kept, mirroring the product's own SKU, price and stock, so the
+     * simple admin form keeps working unchanged. A non-empty list is authoritative
+     * — variants absent from it are removed.
+     */
+    private void syncVariants(Product product, ProductRequest request) {
+        int fallbackThreshold = appProperties.getInventory().getDefaultLowStockThreshold();
+        List<ProductVariantRequest> requested = request.variants();
+
+        if (requested == null || requested.isEmpty()) {
+            ProductVariant variant = product.getDefaultVariant();
+            if (variant == null) {
+                variant = product.getVariants().stream().findFirst().orElse(null);
+            }
+            if (variant == null) {
+                variant = ProductVariant.builder()
+                        .sku(request.sku())
+                        .sizeLabel("Standard")
+                        .price(request.price())
+                        .salePrice(request.salePrice())
+                        .active(true)
+                        .defaultVariant(true)
+                        .displayOrder(0)
+                        .build();
+                product.addVariant(variant);
+            } else {
+                variant.setSku(request.sku());
+                variant.setPrice(request.price());
+                variant.setSalePrice(request.salePrice());
+                variant.setActive(true);
+                variant.setDefaultVariant(true);
+            }
+            applyStock(variant, request.stockQuantity(), request.lowStockThreshold(), fallbackThreshold);
+
+            ProductVariant kept = variant;
+            product.getVariants().removeIf(v -> v != kept);
+            return;
+        }
+
+        Map<Long, ProductVariant> existing = new HashMap<>();
+        for (ProductVariant v : product.getVariants()) {
+            if (v.getId() != null) {
+                existing.put(v.getId(), v);
+            }
+        }
+
+        List<ProductVariant> resulting = new ArrayList<>();
+        int order = 0;
+        boolean defaultSeen = false;
+
+        for (ProductVariantRequest vr : requested) {
+            ProductVariant variant = vr.id() != null ? existing.get(vr.id()) : null;
+            if (variant == null) {
+                variant = new ProductVariant();
+                product.addVariant(variant);
+            }
+            variant.setSku(vr.sku());
+            variant.setFlavour(blankToNull(vr.flavour()));
+            variant.setSizeLabel(blankToNull(vr.sizeLabel()));
+            variant.setSizeValue(vr.sizeValue());
+            variant.setSizeUnit(blankToNull(vr.sizeUnit()));
+            variant.setPrice(vr.price());
+            variant.setSalePrice(vr.salePrice());
+            variant.setImageUrl(blankToNull(vr.imageUrl()));
+            variant.setActive(vr.active() == null || vr.active());
+            variant.setDisplayOrder(vr.displayOrder() != null ? vr.displayOrder() : order);
+
+            // At most one default: the first one flagged wins, and if none is
+            // flagged the first variant becomes it.
+            boolean wantsDefault = Boolean.TRUE.equals(vr.defaultVariant()) && !defaultSeen;
+            variant.setDefaultVariant(wantsDefault);
+            defaultSeen = defaultSeen || wantsDefault;
+
+            applyStock(variant, vr.stockQuantity(), vr.lowStockThreshold(), fallbackThreshold);
+            resulting.add(variant);
+            order++;
+        }
+
+        if (!defaultSeen && !resulting.isEmpty()) {
+            resulting.get(0).setDefaultVariant(true);
+        }
+
+        product.getVariants().removeIf(v -> !resulting.contains(v));
+    }
+
+    private void applyStock(ProductVariant variant, Integer stockQuantity, Integer threshold, int fallbackThreshold) {
+        Inventory inventory = variant.getInventory();
+        if (inventory == null) {
+            inventory = Inventory.builder().variant(variant).lowStockThreshold(fallbackThreshold).build();
+            variant.setInventory(inventory);
+        }
+        if (stockQuantity != null) {
+            inventory.setStockQuantity(stockQuantity);
+        }
+        if (threshold != null) {
+            inventory.setLowStockThreshold(threshold);
+        }
+    }
+
+    private static String blankToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value.trim();
     }
 
     @Override

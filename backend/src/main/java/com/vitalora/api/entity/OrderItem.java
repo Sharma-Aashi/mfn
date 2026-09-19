@@ -28,8 +28,20 @@ public class OrderItem {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id")
+    private ProductVariant variant;
+
     @Column(name = "product_name", nullable = false, length = 200)
     private String productName;
+
+    /** Snapshot of the variant at order time, e.g. "Chocolate · 1 kg". */
+    @Column(name = "variant_label", length = 120)
+    private String variantLabel;
+
+    /** Snapshot of the brand at order time, so a later brand rename cannot rewrite history. */
+    @Column(name = "brand_name", length = 120)
+    private String brandName;
 
     @Column(name = "product_image", length = 500)
     private String productImage;

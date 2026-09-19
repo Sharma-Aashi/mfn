@@ -26,14 +26,26 @@ public class ProductController {
     public ResponseEntity<PageResponse<ProductSummaryResponse>> search(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String category,
+            @RequestParam(required = false) List<String> brands,
+            @RequestParam(required = false) List<String> flavours,
+            @RequestParam(required = false) List<String> sizes,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) Boolean inStockOnly,
             @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size
     ) {
-        return ResponseEntity.ok(productService.search(q, category, minPrice, maxPrice, minRating, sort, page, size));
+        ProductFilter filter = new ProductFilter(q, category, brands, flavours, sizes,
+                minPrice, maxPrice, minRating, inStockOnly, sort);
+        return ResponseEntity.ok(productService.search(filter, page, size));
+    }
+
+    /** Drives the listing sidebar: which brands, flavours and sizes are worth offering. */
+    @GetMapping("/facets")
+    public ResponseEntity<ProductFacetsResponse> facets() {
+        return ResponseEntity.ok(productService.getFacets());
     }
 
     @GetMapping("/admin")

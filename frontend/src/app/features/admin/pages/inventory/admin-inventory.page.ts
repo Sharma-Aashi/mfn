@@ -58,13 +58,13 @@ export class AdminInventoryPage {
   }
 
   protected startEdit(item: InventoryItem): void {
-    this.editingId.set(item.productId);
+    this.editingId.set(item.variantId);
     this.editStock = item.stockQuantity;
     this.editThreshold = item.lowStockThreshold;
   }
 
-  protected saveEdit(productId: number): void {
-    this.inventoryService.updateStock(productId, { stockQuantity: this.editStock, lowStockThreshold: this.editThreshold }).subscribe(() => {
+  protected saveEdit(variantId: number): void {
+    this.inventoryService.updateStock(variantId, { stockQuantity: this.editStock, lowStockThreshold: this.editThreshold }).subscribe(() => {
       this.editingId.set(null);
       this.toast.success('Stock updated.');
       this.load(this.page());
