@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -105,8 +106,18 @@ public class Product {
     @Builder.Default
     private List<ProductImage> images = new ArrayList<>();
 
-    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Inventory inventory;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "brand_id", nullable = false)
+    private Brand brand;
+
+    /**
+     * Stock and the real selling price live here, not on the product.
+     * A Set rather than a List so it can be fetched in the same entity graph
+     * as {@code images} without tripping Hibernate's MultipleBagFetchException.
+     */
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<ProductVariant> variants = new LinkedHashSet<>();
 
     @ManyToMany
     @JoinTable(
@@ -117,12 +128,43 @@ public class Product {
     @Builder.Default
     private Set<Category> categories = new HashSet<>();
 
+    /**
+     * The product's own base price. It seeds new variants and is the fallback
+     * for a product that has none; what a customer pays always comes from a
+     * variant, so prefer {@link #getFromPrice()} for display.
+     */
     public BigDecimal getEffectivePrice() {
         return (salePrice != null && salePrice.compareTo(BigDecimal.ZERO) > 0) ? salePrice : price;
+    }
+
+    /** The cheapest active variant's price — the "from ₹X" a listing card shows. */
+    public BigDecimal getFromPrice() {
+        return variants.stream()
+                .filter(ProductVariant::isActive)
+                .map(ProductVariant::getEffectivePrice)
+                .min(BigDecimal::compareTo)
+                .orElseGet(this::getEffectivePrice);
+    }
+
+    /** The variant a product page opens on: the flagged default, else the first active one. */
+    public ProductVariant getDefaultVariant() {
+        return variants.stream()
+                .filter(ProductVariant::isActive)
+                .filter(ProductVariant::isDefaultVariant)
+                .findFirst()
+                .orElseGet(() -> variants.stream()
+                        .filter(ProductVariant::isActive)
+                        .findFirst()
+                        .orElse(null));
     }
 
     public void addImage(ProductImage image) {
         images.add(image);
         image.setProduct(this);
+    }
+
+    public void addVariant(ProductVariant variant) {
+        variants.add(variant);
+        variant.setProduct(this);
     }
 }

@@ -40,6 +40,16 @@ public class Category {
     @Builder.Default
     private int displayOrder = 0;
 
+    /** Null for a top-level category. Nesting drives the header's mega menu. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Category parent;
+
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+    @OrderBy("displayOrder ASC")
+    @Builder.Default
+    private java.util.List<Category> children = new java.util.ArrayList<>();
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

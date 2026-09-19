@@ -1,5 +1,6 @@
 package com.vitalora.api.dto.product;
 
+import com.vitalora.api.dto.brand.BrandSummaryResponse;
 import com.vitalora.api.dto.category.CategoryResponse;
 
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ public record ProductResponse(
         BigDecimal price,
         BigDecimal salePrice,
         BigDecimal effectivePrice,
+        BigDecimal fromPrice,
         String currency,
         boolean active,
         boolean featured,
@@ -29,9 +31,13 @@ public record ProductResponse(
         BigDecimal avgRating,
         int reviewCount,
         String tags,
+        /** Summed across every variant. Per-variant stock lives on each variant. */
         int stockQuantity,
         int lowStockThreshold,
         boolean inStock,
+        BrandSummaryResponse brand,
+        List<ProductVariantResponse> variants,
+        Long defaultVariantId,
         List<ProductImageResponse> images,
         List<CategoryResponse> categories,
         Instant createdAt,

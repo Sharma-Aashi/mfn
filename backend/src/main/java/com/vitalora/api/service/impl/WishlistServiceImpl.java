@@ -73,16 +73,20 @@ public class WishlistServiceImpl implements WishlistService {
 
     private WishlistItemResponse toItemResponse(WishlistItem item) {
         Product product = item.getProduct();
-        boolean inStock = product.isActive() && product.getInventory() != null
-                && product.getInventory().getStockQuantity() > 0;
+        boolean inStock = product.isActive() && ProductMapper.isInStock(product);
+        var defaultVariant = product.getDefaultVariant();
+        long activeVariants = product.getVariants().stream().filter(v -> v.isActive()).count();
         return new WishlistItemResponse(
                 product.getId(),
                 product.getName(),
                 product.getSlug(),
                 ProductMapper.primaryImageUrl(product),
+                product.getBrand() != null ? product.getBrand().getName() : null,
                 product.getPrice(),
                 product.getSalePrice(),
-                product.getEffectivePrice(),
+                product.getFromPrice(),
+                defaultVariant != null ? defaultVariant.getId() : null,
+                activeVariants > 1,
                 inStock,
                 item.getCreatedAt()
         );
