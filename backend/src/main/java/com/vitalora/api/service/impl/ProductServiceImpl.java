@@ -95,11 +95,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<ProductResponse> searchForAdmin(String q, Boolean active, String category, int page,
-                                                          int size, String sort) {
+    public PageResponse<ProductResponse> searchForAdmin(String q, Boolean active, String category, String brand,
+                                                          int page, int size, String sort) {
         Specification<Product> spec = and(
                 ProductSpecification.search(q),
-                ProductSpecification.hasCategorySlug(category),
+                ProductSpecification.hasCategorySlugOrDescendant(category),
+                brand != null && !brand.isBlank() ? ProductSpecification.hasBrandSlugs(List.of(brand)) : null,
                 active != null ? ProductSpecification.isActive(active) : null,
                 priceOrderSpec(sort)
         );

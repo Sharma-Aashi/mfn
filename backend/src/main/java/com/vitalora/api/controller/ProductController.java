@@ -53,11 +53,12 @@ public class ProductController {
             @RequestParam(required = false) String q,
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) String category,
+            @RequestParam(required = false) String brand,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) String sort
     ) {
-        return ResponseEntity.ok(productService.searchForAdmin(q, active, category, page, size, sort));
+        return ResponseEntity.ok(productService.searchForAdmin(q, active, category, brand, page, size, sort));
     }
 
     @GetMapping("/featured")

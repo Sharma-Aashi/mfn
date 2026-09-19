@@ -18,7 +18,8 @@ public interface ProductService {
 
     ProductFacetsResponse getFacets();
 
-    PageResponse<ProductResponse> searchForAdmin(String q, Boolean active, String category, int page, int size, String sort);
+    PageResponse<ProductResponse> searchForAdmin(String q, Boolean active, String category, String brand,
+                                                int page, int size, String sort);
 
     ProductResponse getBySlug(String slug);
 

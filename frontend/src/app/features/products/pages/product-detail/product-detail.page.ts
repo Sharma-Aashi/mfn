@@ -108,6 +108,20 @@ export class ProductDetailPage {
     return [{ url: variant.imageUrl, alt }, ...shots.filter((s) => s.url !== variant.imageUrl)];
   });
 
+  /**
+   * The first few benefit lines, surfaced above the fold. Benefits are stored
+   * as one claim per line, which is already the shape a scannable strip needs -
+   * a real spec strip (protein per serve, servings) would need structured
+   * fields the catalogue does not have.
+   */
+  protected readonly keyBenefits = computed<string[]>(() =>
+    (this.product()?.benefits ?? '')
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .slice(0, 4),
+  );
+
   protected readonly selectedFlavour = computed(() => this.selectedVariant()?.flavour ?? null);
   protected readonly selectedSize = computed(() => this.selectedVariant()?.sizeLabel ?? null);
 

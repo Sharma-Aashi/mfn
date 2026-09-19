@@ -98,6 +98,19 @@
           <p class="mt-4 leading-relaxed text-charcoal-600">{{ p.shortDescription }}</p>
         }
 
+        @if (keyBenefits().length > 0) {
+          <ul class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            @for (benefit of keyBenefits(); track benefit) {
+              <li class="flex items-start gap-2 text-sm text-charcoal-700">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="mt-0.5 shrink-0 text-forest-600" aria-hidden="true">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+                <span>{{ benefit }}</span>
+              </li>
+            }
+          </ul>
+        }
+
         <!-- Variant pickers: shown only on the axes this product actually varies on. -->
         @if (flavourOptions().length > 1) {
           <div class="mt-6">

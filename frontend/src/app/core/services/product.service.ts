@@ -41,7 +41,7 @@ export class ProductService {
   }
 
   searchForAdmin(params: {
-    q?: string; active?: boolean; category?: string; page?: number; size?: number; sort?: string;
+    q?: string; active?: boolean; category?: string; brand?: string; page?: number; size?: number; sort?: string;
   }): Observable<PageResponse<ProductDetail>> {
     let httpParams = new HttpParams();
     Object.entries(params).forEach(([key, value]) => {

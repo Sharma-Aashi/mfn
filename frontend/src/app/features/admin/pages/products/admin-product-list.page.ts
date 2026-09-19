@@ -7,6 +7,8 @@ import { Category } from '../../../../core/models/category.model';
 import { ProductDetail } from '../../../../core/models/product.model';
 import { CategoryService } from '../../../../core/services/category.service';
 import { ConfirmService } from '../../../../core/services/confirm.service';
+import { Brand } from '../../../../core/models/brand.model';
+import { BrandService } from '../../../../core/services/brand.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { SeoService } from '../../../../core/services/seo.service';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -22,6 +24,7 @@ import { MediaUrlPipe } from '../../../../core/pipes/media-url.pipe';
 })
 export class AdminProductListPage {
   private readonly productService = inject(ProductService);
+  private readonly brandService = inject(BrandService);
   private readonly categoryService = inject(CategoryService);
   private readonly confirmService = inject(ConfirmService);
   private readonly toast = inject(ToastService);
@@ -29,6 +32,7 @@ export class AdminProductListPage {
 
   protected readonly products = signal<ProductDetail[]>([]);
   protected readonly categories = signal<Category[]>([]);
+  protected readonly brands = signal<Brand[]>([]);
   protected readonly loading = signal(true);
   protected readonly page = signal(0);
   protected readonly totalPages = signal(0);
@@ -37,11 +41,13 @@ export class AdminProductListPage {
 
   protected q = '';
   protected category = '';
+  protected brand = '';
   protected active: string = '';
 
   constructor() {
     inject(SeoService).update('Manage Products');
     this.categoryService.getAllForAdmin().subscribe((c) => this.categories.set(c));
+    this.brandService.getAllForAdmin().subscribe((b) => this.brands.set(b));
     this.load(0);
     this.search$.pipe(debounceTime(350)).subscribe(() => this.load(0));
   }
@@ -56,6 +62,7 @@ export class AdminProductListPage {
       .searchForAdmin({
         q: this.q || undefined,
         category: this.category || undefined,
+        brand: this.brand || undefined,
         active: this.active === '' ? undefined : this.active === 'true',
         page,
         size: 10,

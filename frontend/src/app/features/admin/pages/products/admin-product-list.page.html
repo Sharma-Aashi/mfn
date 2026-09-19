@@ -15,6 +15,12 @@
         <option [value]="c.slug">{{ c.name }}</option>
       }
     </select>
+    <select [(ngModel)]="brand" (ngModelChange)="onFilterChange()" class="form-select max-w-[11rem]">
+      <option value="">All brands</option>
+      @for (b of brands(); track b.id) {
+        <option [value]="b.slug">{{ b.name }}</option>
+      }
+    </select>
     <select [(ngModel)]="active" (ngModelChange)="onFilterChange()" class="form-select max-w-[9rem]">
       <option value="">All Status</option>
       <option value="true">Active</option>
