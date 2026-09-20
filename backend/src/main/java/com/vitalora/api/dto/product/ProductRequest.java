@@ -32,6 +32,8 @@ public record ProductRequest(
          * default variant in step with the product's own price and stock.
          */
         @Valid List<ProductVariantRequest> variants,
+        /** At-a-glance facts. An empty list clears them. */
+        @Valid List<ProductSpecRequest> specs,
         @NotNull(message = "Stock quantity is required") @Min(value = 0, message = "Stock cannot be negative") Integer stockQuantity,
         @Min(value = 0, message = "Threshold cannot be negative") Integer lowStockThreshold
 ) {

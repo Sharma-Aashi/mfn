@@ -4,6 +4,7 @@ import com.vitalora.api.dto.category.CategoryResponse;
 import com.vitalora.api.dto.product.ProductImageResponse;
 import com.vitalora.api.dto.product.ProductResponse;
 import com.vitalora.api.dto.product.ProductSummaryResponse;
+import com.vitalora.api.dto.product.ProductSpecResponse;
 import com.vitalora.api.dto.product.ProductVariantResponse;
 import com.vitalora.api.entity.Inventory;
 import com.vitalora.api.entity.Product;
@@ -170,6 +171,9 @@ public final class ProductMapper {
                 stock > 0,
                 BrandMapper.toSummary(product.getBrand()),
                 variantResponses,
+                product.getSpecs().stream()
+                        .map(sp -> new ProductSpecResponse(sp.getId(), sp.getLabel(), sp.getValue(), sp.getDisplayOrder()))
+                        .toList(),
                 defaultVariant != null ? defaultVariant.getId() : null,
                 images,
                 categories,

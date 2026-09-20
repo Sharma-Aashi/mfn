@@ -234,6 +234,18 @@
       </div>
     </div>
 
+    <!-- At a glance: the numbers someone compares before reading prose. -->
+    @if (p.specs.length > 0) {
+      <div class="mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-charcoal-100 sm:grid-cols-4">
+        @for (spec of p.specs; track spec.id) {
+          <div class="bg-white px-4 py-4 text-center">
+            <p class="font-display text-lg font-semibold text-charcoal-900">{{ spec.value }}</p>
+            <p class="mt-0.5 text-xs uppercase tracking-wide text-charcoal-500">{{ spec.label }}</p>
+          </div>
+        }
+      </div>
+    }
+
     <!-- Tabs -->
     <div class="mt-14">
       <div class="scrollbar-none flex gap-2 overflow-x-auto border-b border-charcoal-100 pb-px">

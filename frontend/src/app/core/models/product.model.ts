@@ -23,6 +23,14 @@ export interface ProductVariant {
   inStock: boolean;
 }
 
+/** One at-a-glance fact, e.g. "Protein per serve" / "25 g". */
+export interface ProductSpec {
+  id: number;
+  label: string;
+  value: string;
+  displayOrder: number;
+}
+
 export interface ProductSummary {
   id: number;
   name: string;
@@ -88,6 +96,7 @@ export interface ProductDetail {
   inStock: boolean;
   brand: BrandSummary | null;
   variants: ProductVariant[];
+  specs: ProductSpec[];
   defaultVariantId: number | null;
   images: ProductImage[];
   categories: Category[];
@@ -113,6 +122,12 @@ export interface ProductVariantRequest {
   lowStockThreshold?: number;
 }
 
+export interface ProductSpecRequest {
+  label: string;
+  value: string;
+  displayOrder?: number;
+}
+
 export interface ProductRequest {
   name: string;
   slug?: string;
@@ -135,6 +150,8 @@ export interface ProductRequest {
   categoryIds?: number[];
   /** Leave empty for a single-SKU product; the API then keeps one default variant in step. */
   variants?: ProductVariantRequest[];
+  /** At-a-glance facts. An empty array clears them; omitting leaves them alone. */
+  specs?: ProductSpecRequest[];
   stockQuantity: number;
   lowStockThreshold?: number;
 }

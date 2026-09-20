@@ -9,12 +9,14 @@ import com.vitalora.api.dto.product.ProductImageUpdateRequest;
 import com.vitalora.api.dto.product.ProductRequest;
 import com.vitalora.api.dto.product.ProductResponse;
 import com.vitalora.api.dto.product.ProductSummaryResponse;
+import com.vitalora.api.dto.product.ProductSpecRequest;
 import com.vitalora.api.dto.product.ProductVariantRequest;
 import com.vitalora.api.entity.Brand;
 import com.vitalora.api.entity.Category;
 import com.vitalora.api.entity.Inventory;
 import com.vitalora.api.entity.Product;
 import com.vitalora.api.entity.ProductImage;
+import com.vitalora.api.entity.ProductSpec;
 import com.vitalora.api.entity.ProductVariant;
 import com.vitalora.api.exception.BadRequestException;
 import com.vitalora.api.exception.DuplicateResourceException;
@@ -232,6 +234,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
 
         syncVariants(product, request);
+        syncSpecs(product, request);
 
         return ProductMapper.toResponse(productRepository.save(product));
     }
@@ -274,8 +277,33 @@ public class ProductServiceImpl implements ProductService {
         product.setCategories(resolveCategories(request.categoryIds()));
 
         syncVariants(product, request);
+        syncSpecs(product, request);
 
         return ProductMapper.toResponse(productRepository.save(product));
+    }
+
+    /**
+     * Specs are small and fully ordered, so the list is replaced wholesale
+     * rather than diffed. A null list leaves them alone; an empty one clears.
+     */
+    private void syncSpecs(Product product, ProductRequest request) {
+        List<ProductSpecRequest> requested = request.specs();
+        if (requested == null) {
+            return;
+        }
+        product.getSpecs().clear();
+        int order = 0;
+        for (ProductSpecRequest sr : requested) {
+            if (sr.label() == null || sr.label().isBlank() || sr.value() == null || sr.value().isBlank()) {
+                continue;
+            }
+            product.addSpec(ProductSpec.builder()
+                    .label(sr.label().trim())
+                    .value(sr.value().trim())
+                    .displayOrder(sr.displayOrder() != null ? sr.displayOrder() : order)
+                    .build());
+            order++;
+        }
     }
 
     private Brand resolveBrand(Long brandId) {

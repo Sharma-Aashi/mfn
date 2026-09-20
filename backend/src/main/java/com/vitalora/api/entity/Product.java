@@ -119,6 +119,15 @@ public class Product {
     @Builder.Default
     private Set<ProductVariant> variants = new LinkedHashSet<>();
 
+    /**
+     * At-a-glance facts. A List (bag) like images, so it is loaded separately
+     * rather than joined in the same entity graph.
+     */
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("displayOrder ASC")
+    @Builder.Default
+    private List<ProductSpec> specs = new ArrayList<>();
+
     @ManyToMany
     @JoinTable(
             name = "product_categories",
@@ -161,6 +170,11 @@ public class Product {
     public void addImage(ProductImage image) {
         images.add(image);
         image.setProduct(this);
+    }
+
+    public void addSpec(ProductSpec spec) {
+        specs.add(spec);
+        spec.setProduct(this);
     }
 
     public void addVariant(ProductVariant variant) {

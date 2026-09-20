@@ -3,7 +3,7 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Brand } from '../../../../core/models/brand.model';
 import { Category } from '../../../../core/models/category.model';
-import { ProductDetail, ProductVariantRequest } from '../../../../core/models/product.model';
+import { ProductDetail, ProductSpecRequest, ProductVariantRequest } from '../../../../core/models/product.model';
 import { BrandService } from '../../../../core/services/brand.service';
 import { CategoryService } from '../../../../core/services/category.service';
 import { ConfirmService } from '../../../../core/services/confirm.service';
@@ -63,10 +63,15 @@ export class AdminProductFormPage {
      */
     hasVariants: [false],
     variants: this.fb.array([] as FormGroup[]),
+    specs: this.fb.array([] as FormGroup[]),
   });
 
   protected get variants(): FormArray {
     return this.form.get('variants') as FormArray;
+  }
+
+  protected get specs(): FormArray {
+    return this.form.get('specs') as FormArray;
   }
 
   protected get isEdit(): boolean {
@@ -110,6 +115,8 @@ export class AdminProductFormPage {
         });
         this.variants.clear();
         p.variants.forEach((v) => this.variants.push(this.variantGroup(v)));
+        this.specs.clear();
+        p.specs.forEach((sp) => this.specs.push(this.specGroup(sp.label, sp.value)));
       });
     } else {
       inject(SeoService).update('New Product');
@@ -131,6 +138,18 @@ export class AdminProductFormPage {
       active: [v?.active ?? true],
       defaultVariant: [v?.defaultVariant ?? false],
     });
+  }
+
+  private specGroup(label = '', value = ''): FormGroup {
+    return this.fb.nonNullable.group({ label: [label], value: [value] });
+  }
+
+  protected addSpec(): void {
+    this.specs.push(this.specGroup());
+  }
+
+  protected removeSpec(index: number): void {
+    this.specs.removeAt(index);
   }
 
   protected addVariant(): void {
@@ -179,7 +198,7 @@ export class AdminProductFormPage {
       return;
     }
     this.saving.set(true);
-    const { hasVariants, variants, ...base } = this.form.getRawValue();
+    const { hasVariants, variants, specs, ...base } = this.form.getRawValue();
     const request = {
       ...base,
       brandId: base.brandId as number,
@@ -188,6 +207,9 @@ export class AdminProductFormPage {
       variants: hasVariants
         ? (variants as ProductVariantRequest[]).map((v, i) => ({ ...v, displayOrder: i }))
         : [],
+      specs: (specs as ProductSpecRequest[])
+        .filter((sp) => sp.label?.trim() && sp.value?.trim())
+        .map((sp, i) => ({ ...sp, displayOrder: i })),
     };
     const id = this.productId();
     const obs = id ? this.productService.update(id, request) : this.productService.create(request);

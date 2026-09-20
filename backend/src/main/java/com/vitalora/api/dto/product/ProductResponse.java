@@ -37,6 +37,7 @@ public record ProductResponse(
         boolean inStock,
         BrandSummaryResponse brand,
         List<ProductVariantResponse> variants,
+        List<ProductSpecResponse> specs,
         Long defaultVariantId,
         List<ProductImageResponse> images,
         List<CategoryResponse> categories,
