@@ -73,7 +73,7 @@ const MORE_MENU = -1;
               </svg>
             </a>
 
-            <a routerLink="/cart" class="icon-btn relative" aria-label="Cart">
+            <a routerLink="/cart" class="icon-btn inline-flex relative" aria-label="Cart">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
                 <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
@@ -87,7 +87,7 @@ const MORE_MENU = -1;
 
             @if (authService.isAuthenticated()) {
               <div class="relative hidden sm:block">
-                <button type="button" (click)="accountOpen.set(!accountOpen())" class="icon-btn" [attr.aria-expanded]="accountOpen()" aria-label="Account menu">
+                <button type="button" (click)="accountOpen.set(!accountOpen())" class="icon-btn inline-flex" [attr.aria-expanded]="accountOpen()" aria-label="Account menu">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" />
                   </svg>
@@ -108,7 +108,7 @@ const MORE_MENU = -1;
               </a>
             }
 
-            <button type="button" (click)="mobileOpen.set(true)" class="icon-btn lg:hidden" aria-label="Open menu">
+            <button type="button" (click)="mobileOpen.set(true)" class="icon-btn inline-flex lg:hidden" aria-label="Open menu">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M3 6h18M3 12h18M3 18h18" />
               </svg>
@@ -258,7 +258,7 @@ const MORE_MENU = -1;
         <div class="absolute right-0 top-0 flex h-full w-[85%] max-w-sm flex-col overflow-y-auto bg-cream shadow-lift">
           <div class="flex items-center justify-between border-b border-charcoal-100 px-5 py-4">
             <span class="font-display text-lg font-semibold text-forest-800">Menu</span>
-            <button type="button" (click)="mobileOpen.set(false)" class="icon-btn" aria-label="Close menu">
+            <button type="button" (click)="mobileOpen.set(false)" class="icon-btn inline-flex" aria-label="Close menu">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
@@ -315,8 +315,14 @@ const MORE_MENU = -1;
   `,
   styles: [
     `
+      /*
+       * Emulated encapsulation compiles these to .icon-btn[_ngcontent-*],
+       * which outranks a Tailwind utility, so "display" is deliberately left
+       * out: a rule here would beat lg:hidden / sm:inline-flex on the very
+       * buttons that need to appear and disappear with the breakpoint. Each
+       * usage carries its own display utility instead.
+       */
       .icon-btn {
-        display: inline-flex;
         height: 2.5rem;
         width: 2.5rem;
         align-items: center;

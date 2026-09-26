@@ -19,6 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,13 +30,37 @@ public class CategoryServiceImpl implements CategoryService {
     private final ProductRepository productRepository;
     private final FileStorageService fileStorageService;
 
+    /**
+     * What the storefront is allowed to show. Three rules, in order:
+     *
+     *   1. the admin's Active switch wins - an unchecked category is off;
+     *   2. switching a parent off takes its children with it, because the
+     *      menu is rendered from the roots down and an orphaned child would
+     *      otherwise disappear from the tree while still answering on its
+     *      own URL;
+     *   3. a category with nothing in it is dropped, even when active. An
+     *      empty category is a dead end: it is offered in the menu, clicked,
+     *      and shows "no products found".
+     *
+     * Admins keep seeing everything through getAllForAdmin(), so a category
+     * being invisible here is never the same as it not existing.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<CategoryResponse> getAllActive() {
-        return categoryRepository.findAll().stream()
+        List<Category> active = categoryRepository.findAll().stream()
                 .filter(Category::isActive)
+                .toList();
+
+        Set<Long> activeIds = active.stream().map(Category::getId).collect(Collectors.toSet());
+
+        return active.stream()
+                .filter(c -> c.getParent() == null || activeIds.contains(c.getParent().getId()))
                 .sorted(Comparator.comparingInt(Category::getDisplayOrder))
                 .map(this::toResponseWithCount)
+                // The count is the whole subtree, so a parent stocked only
+                // through its children survives this filter.
+                .filter(c -> c.productCount() > 0)
                 .toList();
     }
 

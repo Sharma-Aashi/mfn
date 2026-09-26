@@ -47,11 +47,12 @@ export interface SiteSettings {
 }
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  brand: { name: 'VITALORA', tagline: 'Better Health. Better Every Day.', logoUrl: '' },
+  brand: { name: 'MUSCLE FREAK NUTRITION', tagline: 'Train Hard. Fuel Right.', logoUrl: '' },
   theme: { key: 'emerald' },
   footer: {
-    about: 'Better Health. Better Every Day. Premium, science-backed supplements for modern wellness routines.',
-    copyrightName: 'VITALORA Wellness Pvt. Ltd.',
+    about:
+      'Genuine sports nutrition, sourced through authorised channels. Protein, pre-workout and daily essentials for people who train seriously.',
+    copyrightName: 'MUSCLE FREAK NUTRITION',
   },
   social: { instagram: '', facebook: '', twitter: '', youtube: '' },
   nav: {
