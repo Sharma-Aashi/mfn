@@ -131,12 +131,59 @@ def block(selector, key, label, accent, deal, n_hue, n_sat):
         lines.append(f"  --t-neutral-{step}: {n[step]};")
     for step in sorted(sf):
         lines.append(f"  --t-surface-{step}: {sf[step]};")
+    # ---- Semantic tokens: the pairs that must flip for dark mode ----
+    # Components written against these need no per-mode classes.
+    lines.append(f"  --t-page: {sf[50]};")
+    lines.append(f"  --t-card: #ffffff;")
+    lines.append(f"  --t-raised: {sf[100]};")
+    lines.append(f"  --t-line: {n[200]};")
+    lines.append(f"  --t-ink: {n[900]};")
+    lines.append(f"  --t-ink-muted: {n[500]};")
+    lines.append(f"  --t-accent: {a[700]};")
+    lines.append(f"  --t-accent-hover: {a[800]};")
+    lines.append(f"  --t-accent-soft: {a[50]};")
+    lines.append(f"  --t-on-accent: #ffffff;")
     lines.append(f"  --t-cream: {sf[50]};")
     lines.append(f"  --t-ivory: {hls_to_hex(*hex_to_hls(accent)[:1], 0.995, 0.0)};")
     lines.append(f"  --t-deal: {deal.lower()};")
     lines.append(f"  --t-deal-ink: {'#ffffff'};")
     lines.append("}")
     return "\n".join(lines)
+
+
+def dark_block(selector, key, label, accent, deal, n_hue, n_sat):
+    """
+    The same semantic names at dark values. A dark ground needs a LIGHTER
+    accent to stay visible, and a light accent needs DARK text on it, so
+    --t-accent and --t-on-accent invert together rather than separately.
+    """
+    a = accent_ramp(accent)
+    h, _, s_ = hex_to_hls(accent)
+    nh = n_hue / 360
+    page = hls_to_hex(nh, 0.055, n_sat * 0.8)
+    card = hls_to_hex(nh, 0.095, n_sat * 0.7)
+    raised = hls_to_hex(nh, 0.135, n_sat * 0.6)
+    line = hls_to_hex(nh, 0.22, n_sat * 0.5)
+    ink = hls_to_hex(nh, 0.95, n_sat * 0.25)
+    ink_muted = hls_to_hex(nh, 0.66, n_sat * 0.3)
+    accent_light = a[400]
+    accent_light_hover = a[300]
+    accent_soft = hls_to_hex(h, 0.17, min(s_ * 0.55, 0.30))
+    on_accent = hls_to_hex(h, 0.07, min(s_, 0.5))
+    lines = [f"{selector} {{", f"  /* {label} - dark */"]
+    for name, val in (
+        ("page", page), ("card", card), ("raised", raised), ("line", line),
+        ("ink", ink), ("ink-muted", ink_muted),
+        ("accent", accent_light), ("accent-hover", accent_light_hover),
+        ("accent-soft", accent_soft), ("on-accent", on_accent),
+        ("cream", page), ("ivory", card),
+    ):
+        lines.append(f"  --t-{name}: {val};")
+    lines.append("}")
+    return chr(10).join(lines), {
+        "page": page, "card": card, "ink": ink, "ink_muted": ink_muted,
+        "accent": accent_light, "on_accent": on_accent, "deal": deal,
+    }
 
 
 def main():
@@ -159,6 +206,16 @@ def main():
         out.append(block(f'[data-theme="{t[0]}"]', *t))
         out.append("")
 
+    out.append("/* ---- Dark mode. Opt-in via data-mode=\"dark\" on <html>. ---- */")
+    out.append("")
+    dark_default, _ = dark_block(':root[data-mode="dark"]', *d)
+    out.append(dark_default)
+    out.append("")
+    for t in THEMES:
+        blk, _ = dark_block(f'[data-theme="{t[0]}"][data-mode="dark"]', *t)
+        out.append(blk)
+        out.append("")
+
     with open(OUT_PATH, "w", encoding="utf-8") as fh:
         fh.write("\n".join(out))
 
@@ -177,7 +234,20 @@ def main():
         worst = min(worst, c700, c800, cdeal, c_chip)
         flag = "" if min(c700, c800, cdeal, c_chip) >= 4.5 else "   <-- FAILS 4.5:1"
         print(f"  {label:18} 700 {c700:5.2f}  800 {c800:5.2f}  deal {cdeal:5.2f}  chip {c_chip:5.2f}{flag}")
-    print(f"\nworst pairing overall: {worst:.2f}:1")
+    print(f"\nworst light pairing: {worst:.2f}:1")
+
+    print(f"\nDark mode - ink on page, and the accent button:")
+    dark_worst = 21.0
+    for t in THEMES:
+        _, v = dark_block("x", *t)
+        c_ink = contrast(v["ink"], v["page"])
+        c_muted = contrast(v["ink_muted"], v["page"])
+        c_btn = contrast(v["on_accent"], v["accent"])
+        c_btn_bg = contrast(v["accent"], v["page"])
+        dark_worst = min(dark_worst, c_ink, c_muted, c_btn, c_btn_bg)
+        flag = "" if min(c_ink, c_muted, c_btn, c_btn_bg) >= 4.5 else "   <-- FAILS 4.5:1"
+        print(f"  {t[1]:18} ink {c_ink:5.2f}  muted {c_muted:5.2f}  btn-text {c_btn:5.2f}  btn-vs-page {c_btn_bg:5.2f}{flag}")
+    print(f"\nworst dark pairing: {dark_worst:.2f}:1")
 
 
 if __name__ == "__main__":
