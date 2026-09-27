@@ -10,6 +10,7 @@ import com.vitalora.api.dto.product.ProductRequest;
 import com.vitalora.api.dto.product.ProductResponse;
 import com.vitalora.api.dto.product.ProductSummaryResponse;
 import com.vitalora.api.dto.product.ProductSpecRequest;
+import com.vitalora.api.dto.product.ComboItemRequest;
 import com.vitalora.api.dto.product.ProductVariantRequest;
 import com.vitalora.api.entity.Brand;
 import com.vitalora.api.entity.Category;
@@ -17,6 +18,7 @@ import com.vitalora.api.entity.Inventory;
 import com.vitalora.api.entity.Product;
 import com.vitalora.api.entity.ProductImage;
 import com.vitalora.api.entity.ProductSpec;
+import com.vitalora.api.entity.ComboItem;
 import com.vitalora.api.entity.ProductVariant;
 import com.vitalora.api.exception.BadRequestException;
 import com.vitalora.api.exception.DuplicateResourceException;
@@ -44,6 +46,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -167,6 +170,16 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<ProductSummaryResponse> getCombos() {
+        // Four to a row on the home page, and a short row reads as unfinished
+        // rather than curated.
+        return productRepository.findTop4ByActiveTrueAndComboTrueOrderByIdDesc().stream()
+                .map(ProductMapper::toSummary)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<ProductSummaryResponse> getBestSellers() {
         Specification<Product> spec = Specification.where(ProductSpecification.isActive(true))
                 .and(ProductSpecification.isBestSeller());
@@ -235,6 +248,7 @@ public class ProductServiceImpl implements ProductService {
 
         syncVariants(product, request);
         syncSpecs(product, request);
+        syncComboItems(product, request);
 
         return ProductMapper.toResponse(productRepository.save(product));
     }
@@ -278,6 +292,7 @@ public class ProductServiceImpl implements ProductService {
 
         syncVariants(product, request);
         syncSpecs(product, request);
+        syncComboItems(product, request);
 
         return ProductMapper.toResponse(productRepository.save(product));
     }
@@ -301,6 +316,52 @@ public class ProductServiceImpl implements ProductService {
                     .label(sr.label().trim())
                     .value(sr.value().trim())
                     .displayOrder(sr.displayOrder() != null ? sr.displayOrder() : order)
+                    .build());
+            order++;
+        }
+    }
+
+    /**
+     * Brings the stack's contents in line with the request.
+     *
+     * <p>Replaced wholesale like specs: the list is short and fully ordered,
+     * and nothing downstream holds a reference to a combo_items row. Turning
+     * the combo flag off empties it, so a product that stops being a stack
+     * does not keep advertising contents nobody can see.
+     */
+    private void syncComboItems(Product product, ProductRequest request) {
+        boolean isCombo = Boolean.TRUE.equals(request.combo());
+        product.setCombo(isCombo);
+
+        if (!isCombo) {
+            product.getComboItems().clear();
+            return;
+        }
+
+        List<ComboItemRequest> requested = request.comboItems();
+        if (requested == null) {
+            return;
+        }
+
+        product.getComboItems().clear();
+        int order = 0;
+        Set<Long> seen = new HashSet<>();
+        for (ComboItemRequest cr : requested) {
+            if (cr.variantId() == null || !seen.add(cr.variantId())) {
+                // A stack listing the same option twice is a data-entry slip,
+                // not two of it: quantity is what says two.
+                continue;
+            }
+            ProductVariant variant = variantRepository.findById(cr.variantId())
+                    .orElseThrow(() -> ResourceNotFoundException.of("Product option", cr.variantId()));
+            if (variant.getProduct() != null && variant.getProduct().getId() != null
+                    && variant.getProduct().getId().equals(product.getId())) {
+                throw new BadRequestException("A stack cannot contain itself.");
+            }
+            product.addComboItem(ComboItem.builder()
+                    .variant(variant)
+                    .quantity(cr.quantity() != null && cr.quantity() > 0 ? cr.quantity() : 1)
+                    .displayOrder(cr.displayOrder() != null ? cr.displayOrder() : order)
                     .build());
             order++;
         }

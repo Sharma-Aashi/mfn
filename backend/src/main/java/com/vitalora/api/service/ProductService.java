@@ -31,6 +31,9 @@ public interface ProductService {
 
     List<ProductSummaryResponse> getNewArrivals();
 
+    /** Stacks: products flagged as a combo, newest first. */
+    List<ProductSummaryResponse> getCombos();
+
     List<ProductSummaryResponse> getRelated(String slug);
 
     ProductResponse create(ProductRequest request);

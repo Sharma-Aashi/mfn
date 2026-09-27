@@ -60,6 +60,11 @@ export class ProductService {
     return this.http.get<ProductSummary[]>(`${this.base}/best-sellers`);
   }
 
+  /** Stacks: products sold as a bundle of several others. */
+  getCombos(): Observable<ProductSummary[]> {
+    return this.http.get<ProductSummary[]>(`${this.base}/combos`);
+  }
+
   getNewArrivals(): Observable<ProductSummary[]> {
     return this.http.get<ProductSummary[]>(`${this.base}/new-arrivals`);
   }

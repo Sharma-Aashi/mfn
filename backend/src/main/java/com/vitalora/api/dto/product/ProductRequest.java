@@ -34,6 +34,13 @@ public record ProductRequest(
         @Valid List<ProductVariantRequest> variants,
         /** At-a-glance facts. An empty list clears them. */
         @Valid List<ProductSpecRequest> specs,
+        /**
+         * True when this product is a stack. It stays an ordinary product -
+         * own variant, own price, own stock - so nothing downstream changes.
+         */
+        Boolean combo,
+        /** What is inside the stack. Ignored unless {@code combo} is true. */
+        @Valid List<ComboItemRequest> comboItems,
         @NotNull(message = "Stock quantity is required") @Min(value = 0, message = "Stock cannot be negative") Integer stockQuantity,
         @Min(value = 0, message = "Threshold cannot be negative") Integer lowStockThreshold
 ) {

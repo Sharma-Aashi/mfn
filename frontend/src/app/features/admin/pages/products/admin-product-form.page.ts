@@ -64,7 +64,20 @@ export class AdminProductFormPage {
     hasVariants: [false],
     variants: this.fb.array([] as FormGroup[]),
     specs: this.fb.array([] as FormGroup[]),
+    /**
+     * A stack is still an ordinary product - own SKU, price and stock - so
+     * everything above still applies. This only records what is inside it.
+     */
+    combo: [false],
+    comboItems: this.fb.array([] as FormGroup[]),
   });
+
+  /** Every sellable option in the catalogue, for the stack picker. */
+  protected readonly pickableVariants = signal<{ id: number; label: string; price: number }[]>([]);
+
+  protected get comboItems(): FormArray {
+    return this.form.get('comboItems') as FormArray;
+  }
 
   protected get variants(): FormArray {
     return this.form.get('variants') as FormArray;
@@ -81,6 +94,7 @@ export class AdminProductFormPage {
   constructor() {
     this.categoryService.getAllForAdmin().subscribe((c) => this.categories.set(c));
     this.brandService.getAllForAdmin().subscribe((b) => this.brands.set(b));
+    this.loadPickableVariants();
 
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
@@ -112,11 +126,14 @@ export class AdminProductFormPage {
           newArrival: p.newArrival,
           categoryIds: p.categories.map((c) => c.id),
           hasVariants: p.variants.length > 1,
+          combo: p.combo,
         });
         this.variants.clear();
         p.variants.forEach((v) => this.variants.push(this.variantGroup(v)));
         this.specs.clear();
         p.specs.forEach((sp) => this.specs.push(this.specGroup(sp.label, sp.value)));
+        this.comboItems.clear();
+        (p.comboItems ?? []).forEach((i) => this.comboItems.push(this.comboItemGroup(i.variantId, i.quantity)));
       });
     } else {
       inject(SeoService).update('New Product');
@@ -137,6 +154,42 @@ export class AdminProductFormPage {
       lowStockThreshold: [v?.lowStockThreshold ?? 15, Validators.min(0)],
       active: [v?.active ?? true],
       defaultVariant: [v?.defaultVariant ?? false],
+    });
+  }
+
+  private comboItemGroup(variantId: number | null = null, quantity = 1): FormGroup {
+    return this.fb.nonNullable.group({
+      variantId: [variantId, Validators.required],
+      quantity: [quantity, [Validators.required, Validators.min(1)]],
+    });
+  }
+
+  protected addComboItem(): void {
+    this.comboItems.push(this.comboItemGroup());
+    this.form.patchValue({ combo: true });
+  }
+
+  protected removeComboItem(index: number): void {
+    this.comboItems.removeAt(index);
+  }
+
+  /**
+   * Flattened to "Product - Flavour - Size" because a stack is assembled from
+   * options, not products: which flavour goes in the box is the whole point.
+   * The product being edited is filtered out so a stack cannot contain itself.
+   */
+  private loadPickableVariants(): void {
+    this.productService.searchForAdmin({ size: 200 }).subscribe((page) => {
+      const rows: { id: number; label: string; price: number }[] = [];
+      for (const p of page.content) {
+        if (p.id === this.productId()) continue;
+        for (const v of p.variants) {
+          const parts = [v.flavour, v.sizeLabel].filter(Boolean).join(' · ');
+          rows.push({ id: v.id, label: parts ? `${p.name} — ${parts}` : p.name, price: v.effectivePrice });
+        }
+      }
+      rows.sort((a, b) => a.label.localeCompare(b.label));
+      this.pickableVariants.set(rows);
     });
   }
 
@@ -198,7 +251,7 @@ export class AdminProductFormPage {
       return;
     }
     this.saving.set(true);
-    const { hasVariants, variants, specs, ...base } = this.form.getRawValue();
+    const { hasVariants, variants, specs, combo, comboItems, ...base } = this.form.getRawValue();
     const request = {
       ...base,
       brandId: base.brandId as number,
@@ -210,6 +263,13 @@ export class AdminProductFormPage {
       specs: (specs as ProductSpecRequest[])
         .filter((sp) => sp.label?.trim() && sp.value?.trim())
         .map((sp, i) => ({ ...sp, displayOrder: i })),
+      combo,
+      // Rows with nothing picked are half-finished edits, not empty slots.
+      comboItems: combo
+        ? (comboItems as { variantId: number | null; quantity: number }[])
+            .filter((c) => c.variantId !== null)
+            .map((c, i) => ({ variantId: c.variantId as number, quantity: c.quantity || 1, displayOrder: i }))
+        : [],
     };
     const id = this.productId();
     const obs = id ? this.productService.update(id, request) : this.productService.create(request);

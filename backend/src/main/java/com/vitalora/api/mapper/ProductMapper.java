@@ -1,11 +1,13 @@
 package com.vitalora.api.mapper;
 
 import com.vitalora.api.dto.category.CategoryResponse;
+import com.vitalora.api.dto.product.ComboItemResponse;
 import com.vitalora.api.dto.product.ProductImageResponse;
 import com.vitalora.api.dto.product.ProductResponse;
 import com.vitalora.api.dto.product.ProductSummaryResponse;
 import com.vitalora.api.dto.product.ProductSpecResponse;
 import com.vitalora.api.dto.product.ProductVariantResponse;
+import com.vitalora.api.entity.ComboItem;
 import com.vitalora.api.entity.Inventory;
 import com.vitalora.api.entity.Product;
 import com.vitalora.api.entity.ProductImage;
@@ -108,8 +110,40 @@ public final class ProductMapper {
                 product.isFeatured(),
                 product.isBestSeller(),
                 product.isNewArrival(),
-                isInStock(product)
+                isInStock(product),
+                product.isCombo(),
+                product.isCombo() ? product.getComponentsTotal() : BigDecimal.ZERO,
+                toComboItems(product)
         );
+    }
+
+    /**
+     * Flattened contents of a stack. Empty for everything else, so a card can
+     * branch on the list rather than on the flag.
+     */
+    private static List<ComboItemResponse> toComboItems(Product product) {
+        if (!product.isCombo()) {
+            return List.of();
+        }
+        return product.getComboItems().stream()
+                .sorted(Comparator.comparingInt(ComboItem::getDisplayOrder))
+                .map(item -> {
+                    ProductVariant v = item.getVariant();
+                    Product owner = v.getProduct();
+                    return new ComboItemResponse(
+                            v.getId(),
+                            owner.getId(),
+                            owner.getSlug(),
+                            owner.getName(),
+                            v.getFlavour(),
+                            v.getSizeLabel(),
+                            // the variant's own shot where it has one, else the
+                            // owning product's primary image
+                            v.getImageUrl() != null ? v.getImageUrl() : primaryImageUrl(owner),
+                            item.getQuantity(),
+                            v.getEffectivePrice());
+                })
+                .toList();
     }
 
     public static ProductResponse toResponse(Product product) {
@@ -177,6 +211,9 @@ public final class ProductMapper {
                 defaultVariant != null ? defaultVariant.getId() : null,
                 images,
                 categories,
+                product.isCombo(),
+                product.isCombo() ? product.getComponentsTotal() : BigDecimal.ZERO,
+                toComboItems(product),
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );

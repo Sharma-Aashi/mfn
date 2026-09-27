@@ -23,6 +23,23 @@ export interface ProductVariant {
   inStock: boolean;
 }
 
+/**
+ * One pack inside a stack. A stack is an ordinary product with its own price
+ * and stock; these only describe what is in the box and what each part costs
+ * on its own, so the struck-through price can be summed rather than typed.
+ */
+export interface ComboItem {
+  variantId: number;
+  productId: number;
+  productSlug: string;
+  productName: string;
+  flavour: string | null;
+  sizeLabel: string | null;
+  imageUrl: string | null;
+  quantity: number;
+  unitPrice: number;
+}
+
 /** One at-a-glance fact, e.g. "Protein per serve" / "25 g". */
 export interface ProductSpec {
   id: number;
@@ -56,6 +73,11 @@ export interface ProductSummary {
   bestSeller: boolean;
   newArrival: boolean;
   inStock: boolean;
+  /** True when this product is a stack of several others. */
+  combo: boolean;
+  /** What the contents cost bought separately. Zero when not a stack. */
+  componentsTotal: number;
+  comboItems: ComboItem[];
 }
 
 export interface ProductImage {
@@ -102,6 +124,11 @@ export interface ProductDetail {
   categories: Category[];
   createdAt: string;
   updatedAt: string;
+  /** True when this product is a stack of several others. */
+  combo: boolean;
+  /** What the contents cost bought separately. Zero when not a stack. */
+  componentsTotal: number;
+  comboItems: ComboItem[];
 }
 
 export interface ProductVariantRequest {

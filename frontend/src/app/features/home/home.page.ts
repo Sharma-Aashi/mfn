@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { UpperCasePipe } from '@angular/common';
+import { CurrencyPipe, UpperCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Brand } from '../../core/models/brand.model';
 import { Category } from '../../core/models/category.model';
@@ -37,7 +37,7 @@ const DEFAULT_MID_BANNER = 'assets/brand/banner-dumbbells.png';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [MediaUrlPipe, RouterLink, UpperCasePipe, ProductCardComponent],
+  imports: [MediaUrlPipe, RouterLink, UpperCasePipe, CurrencyPipe, ProductCardComponent],
   templateUrl: './home.page.html',
 })
 export class HomePage {
@@ -52,6 +52,7 @@ export class HomePage {
   protected readonly brands = signal<Brand[]>([]);
   protected readonly featured = signal<ProductSummary[]>([]);
   protected readonly bestSellers = signal<ProductSummary[]>([]);
+  protected readonly combos = signal<ProductSummary[]>([]);
   protected readonly loading = signal(true);
 
   /**
@@ -81,6 +82,18 @@ export class HomePage {
   protected readonly topSellers = computed(() => this.bestSellers().slice(0, 4));
 
   protected readonly heroImage = computed(() => this.content()?.hero?.image?.trim() || DEFAULT_HERO);
+
+  /**
+   * A stack only advertises a saving when its contents actually cost more
+   * separately. Components priced at zero - which is what an unpriced
+   * catalogue looks like - give no saving rather than a 100% one.
+   */
+  protected savingPercent(p: ProductSummary): number {
+    const was = p.componentsTotal;
+    const now = p.multipleVariants ? p.fromPrice : p.effectivePrice;
+    if (was <= 0 || now <= 0 || now >= was) return 0;
+    return Math.round(((was - now) / was) * 100);
+  }
   protected readonly midBannerImage = DEFAULT_MID_BANNER;
 
   constructor() {
@@ -102,6 +115,7 @@ export class HomePage {
     // every logo tells a shopper nothing.
     this.brandService.getFeatured().subscribe((b) => this.brands.set(b));
     this.productService.getFeatured().subscribe((p) => this.featured.set(p));
+    this.productService.getCombos().subscribe((p) => this.combos.set(p));
     this.productService.getBestSellers().subscribe({
       next: (p) => {
         this.bestSellers.set(p);

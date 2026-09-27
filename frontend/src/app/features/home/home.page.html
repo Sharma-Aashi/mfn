@@ -140,6 +140,71 @@
   </div>
 </section>
 
+<!-- ============ STACKS — image tiles, not another card grid ============ -->
+@if (combos().length > 0) {
+  <section class="container-vitalora pt-12">
+    <div class="flex items-start justify-between gap-4">
+      <div class="flex flex-col gap-1">
+        <h2 class="font-display text-[22px] font-extrabold tracking-[-0.022em] sm:text-[27px]">Stacks that work together</h2>
+        <p class="text-sm text-charcoal-500">Two products, one price, one delivery.</p>
+      </div>
+      <a routerLink="/products" class="shrink-0 pt-1.5 text-sm font-semibold text-forest-700 hover:underline hover:underline-offset-4">
+        All stacks
+      </a>
+    </div>
+
+    <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      @for (k of combos(); track k.id) {
+        <a
+          [routerLink]="['/products', k.slug]"
+          class="card-lift flex flex-col overflow-hidden rounded-xl border border-charcoal-100 bg-white"
+        >
+          <!-- The component packs, not one merged photograph: a stack picture
+               that does not match what ships is worse than no picture. -->
+          <div class="relative flex h-[210px] items-center justify-center gap-0 border-b border-charcoal-50 bg-white px-5">
+            @for (item of k.comboItems; track item.variantId) {
+              @if (item.imageUrl) {
+                <img
+                  [src]="item.imageUrl | mediaUrl"
+                  [alt]="item.productName"
+                  loading="lazy"
+                  class="h-[150px] w-auto object-contain"
+                />
+              }
+            }
+            @if (savingPercent(k) > 0) {
+              <span class="absolute left-3.5 top-3.5 rounded-[2px] bg-deal px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-wider text-deal-ink">
+                Save {{ savingPercent(k) }}%
+              </span>
+            }
+          </div>
+
+          <div class="flex items-center justify-between gap-4 p-4">
+            <div class="flex min-w-0 flex-col gap-1">
+              <span class="truncate text-[15px] font-bold">{{ k.name }}</span>
+              <span class="truncate text-xs text-charcoal-500">
+                @for (item of k.comboItems; track item.variantId; let last = $last) {
+                  {{ item.productName }}@if (!last) { <span> + </span> }
+                }
+              </span>
+            </div>
+            <div class="flex shrink-0 flex-col items-end">
+              <span class="font-display text-[18px] font-extrabold">
+                {{ (k.multipleVariants ? k.fromPrice : k.effectivePrice) | currency: 'INR' : 'symbol' : '1.0-0' }}
+              </span>
+              @if (savingPercent(k) > 0) {
+                <span class="text-[11.5px] text-charcoal-400 line-through">
+                  {{ k.componentsTotal | currency: 'INR' : 'symbol' : '1.0-0' }}
+                </span>
+              }
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  </section>
+}
+
 <!-- ============ SHOP BY GOAL — icons, not cards ============ -->
 @if (goalCategories().length > 0) {
   <section class="container-vitalora flex flex-col items-center gap-7 pt-12">

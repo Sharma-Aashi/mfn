@@ -40,4 +40,19 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @EntityGraph(attributePaths = {"images", "categories", "brand", "variants", "variants.inventory"})
     List<Product> findTop8ByActiveTrueAndFeaturedTrue();
+
+    /**
+     * Stacks for the home page. The entity graph pulls the components in with
+     * them, because a stack card is useless without the packs it contains and
+     * fetching those lazily would be one query per combo.
+     */
+    // The component products' own images are deliberately NOT in this graph:
+    // "images" would then appear twice and Hibernate rejects fetching the same
+    // bag twice. They load lazily inside the read transaction instead, which
+    // is a handful of queries for at most four stacks.
+    @EntityGraph(attributePaths = {
+            "images", "brand", "variants", "variants.inventory",
+            "comboItems", "comboItems.variant", "comboItems.variant.product"
+    })
+    List<Product> findTop4ByActiveTrueAndComboTrueOrderByIdDesc();
 }

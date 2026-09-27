@@ -41,6 +41,9 @@ public record ProductResponse(
         Long defaultVariantId,
         List<ProductImageResponse> images,
         List<CategoryResponse> categories,
+        boolean combo,
+        BigDecimal componentsTotal,
+        List<ComboItemResponse> comboItems,
         Instant createdAt,
         Instant updatedAt
 ) {

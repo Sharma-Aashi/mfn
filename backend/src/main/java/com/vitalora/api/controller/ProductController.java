@@ -71,6 +71,11 @@ public class ProductController {
         return ResponseEntity.ok(productService.getBestSellers());
     }
 
+    @GetMapping("/combos")
+    public ResponseEntity<List<ProductSummaryResponse>> combos() {
+        return ResponseEntity.ok(productService.getCombos());
+    }
+
     @GetMapping("/new-arrivals")
     public ResponseEntity<List<ProductSummaryResponse>> newArrivals() {
         return ResponseEntity.ok(productService.getNewArrivals());

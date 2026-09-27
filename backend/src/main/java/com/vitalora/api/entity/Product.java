@@ -128,6 +128,28 @@ public class Product {
     @Builder.Default
     private List<ProductSpec> specs = new ArrayList<>();
 
+    /**
+     * True when this product is a stack: several other products sold together
+     * at one price. It is still a perfectly ordinary product underneath - its
+     * own variant, price and stock - so the cart and checkout need to know
+     * nothing about combos.
+     */
+    @Column(name = "is_combo", nullable = false)
+    @Builder.Default
+    private boolean combo = false;
+
+    /**
+     * What is inside the stack. Empty for everything that is not one.
+     *
+     * <p>A Set rather than a List for the same reason as {@code variants}: a
+     * stack card needs the images and the contents in one query, and two bags
+     * in one entity graph is a MultipleBagFetchException. Order comes from
+     * displayOrder at the point of display.
+     */
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<ComboItem> comboItems = new LinkedHashSet<>();
+
     @ManyToMany
     @JoinTable(
             name = "product_categories",
@@ -180,5 +202,24 @@ public class Product {
     public void addVariant(ProductVariant variant) {
         variants.add(variant);
         variant.setProduct(this);
+    }
+
+    public void addComboItem(ComboItem item) {
+        comboItems.add(item);
+        item.setProduct(this);
+    }
+
+    /**
+     * What the contents would cost bought separately — the struck-through
+     * price on a stack. Summed from the components every time rather than
+     * stored, so it cannot disagree with them after a re-price.
+     *
+     * <p>Zero when the stack is empty, which is also the signal to show no
+     * saving at all rather than a 100% one.
+     */
+    public BigDecimal getComponentsTotal() {
+        return comboItems.stream()
+                .map(i -> i.getVariant().getEffectivePrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
