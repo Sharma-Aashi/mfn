@@ -22,35 +22,25 @@
     <div class="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-16">
       <!-- Gallery. Sticky on desktop: the buy column is much taller than this one. -->
       <div class="lg:sticky lg:top-28">
-        <div class="relative aspect-square overflow-hidden rounded-2xl bg-beige-100">
-          @if (galleryImages().length > 0) {
-            <img
-              [src]="galleryImages()[activeImage()].url | mediaUrl"
-              [alt]="galleryImages()[activeImage()].alt"
-              class="h-full w-full object-cover"
-            />
-          }
-          @if (selectedVariant(); as v) {
-            @if (v.salePrice) {
-              <span class="absolute left-4 top-4 rounded-full bg-deal px-3 py-1 text-xs font-bold text-deal-ink">
-                {{ variantDiscountPercent() }}% off
-              </span>
+        @if (galleryImages().length > 0) {
+          <app-product-gallery [images]="galleryImages()">
+            @if (selectedVariant(); as v) {
+              @if (v.salePrice) {
+                <span
+                  gallery-badge
+                  class="pointer-events-none absolute left-4 top-4 rounded-[3px] bg-deal px-3 py-1 text-xs font-bold text-deal-ink"
+                >
+                  {{ variantDiscountPercent() }}% off
+                </span>
+              }
             }
-          }
-        </div>
-        @if (galleryImages().length > 1) {
-          <div class="scrollbar-none mt-3 flex gap-3 overflow-x-auto">
-            @for (img of galleryImages(); track img.url; let i = $index) {
-              <button
-                type="button"
-                (click)="activeImage.set(i)"
-                [attr.aria-label]="'View image ' + (i + 1) + ' of ' + galleryImages().length"
-                class="h-16 w-16 shrink-0 overflow-hidden rounded-xl ring-2 transition"
-                [class]="activeImage() === i ? 'ring-forest-600' : 'ring-transparent opacity-70 hover:opacity-100'"
-              >
-                <img [src]="img.url | mediaUrl" [alt]="img.alt" class="h-full w-full object-cover" />
-              </button>
-            }
+          </app-product-gallery>
+        } @else {
+          <div class="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border border-charcoal-100 bg-white text-charcoal-300">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M21 16l-5-5-6 6" />
+            </svg>
+            <span class="text-xs">Photo needed</span>
           </div>
         }
       </div>

@@ -12,6 +12,7 @@ import { ReviewService } from '../../../../core/services/review.service';
 import { SeoService } from '../../../../core/services/seo.service';
 import { SiteSettingsService } from '../../../../core/services/site-settings.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ProductGalleryComponent } from '../../../../shared/components/product-gallery/product-gallery.component';
 import { MediaUrlPipe, resolveMediaUrl } from '../../../../core/pipes/media-url.pipe';
 import { WishlistService } from '../../../../core/services/wishlist.service';
 import { ProductCardComponent } from '../../../../shared/components/product-card/product-card.component';
@@ -23,7 +24,7 @@ type TabKey = 'description' | 'benefits' | 'ingredients' | 'nutrition' | 'usage'
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe, CurrencyPipe, StarRatingComponent, QuantityStepperComponent, ProductCardComponent, MediaUrlPipe],
+  imports: [RouterLink, FormsModule, DatePipe, CurrencyPipe, StarRatingComponent, QuantityStepperComponent, ProductCardComponent, ProductGalleryComponent, MediaUrlPipe],
   templateUrl: './product-detail.page.html',
 })
 export class ProductDetailPage {
@@ -40,7 +41,6 @@ export class ProductDetailPage {
 
   protected readonly product = signal<ProductDetail | null>(null);
   protected readonly notFound = signal(false);
-  protected readonly activeImage = signal(0);
   protected readonly qty = signal(1);
   protected readonly selectedVariantId = signal<number | null>(null);
   protected readonly activeTab = signal<TabKey>('description');
@@ -134,7 +134,6 @@ export class ProductDetailPage {
 
   private load(slug: string): void {
     this.notFound.set(false);
-    this.activeImage.set(0);
     this.qty.set(1);
     this.selectedVariantId.set(null);
     this.showReviewForm.set(false);
@@ -215,8 +214,6 @@ export class ProductDetailPage {
 
   private selectVariant(id: number): void {
     this.selectedVariantId.set(id);
-    // Bring whatever photo now leads the gallery into view.
-    this.activeImage.set(0);
   }
 
   /**
