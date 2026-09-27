@@ -2,7 +2,7 @@ import { Component, effect, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SeoService } from '../../../../core/services/seo.service';
 import { SiteSettingsService } from '../../../../core/services/site-settings.service';
-import { ThemeOption, ThemeService } from '../../../../core/services/theme.service';
+import { ButtonStyleOption, ThemeOption, ThemeService } from '../../../../core/services/theme.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { ImageUploadFieldComponent } from '../../../../shared/components/image-upload-field/image-upload-field.component';
 
@@ -24,6 +24,8 @@ export class AdminSettingsPage {
 
   /** Which theme the picker is showing. Painted live, only persisted on save. */
   protected readonly pickedTheme = signal(this.themeService.activeKey());
+  protected readonly pickedButtonStyle = signal(this.themeService.activeButtonStyle());
+  protected readonly buttonStyles: ButtonStyleOption[] = this.themeService.buttonStyles;
 
   protected readonly themeGroups: { name: string; themes: ThemeOption[] }[] = [
     { name: 'Reviewed', themes: this.themeService.themes.filter((t) => t.group === 'Reviewed') },
@@ -75,6 +77,9 @@ export class AdminSettingsPage {
       if (!this.themeDirty()) {
         this.pickedTheme.set(this.themeService.activeKey());
       }
+      if (!this.buttonStyleDirty()) {
+        this.pickedButtonStyle.set(this.themeService.activeButtonStyle());
+      }
     });
   }
 
@@ -91,6 +96,17 @@ export class AdminSettingsPage {
   protected revertTheme(): void {
     this.pickedTheme.set(this.themeService.activeKey());
     this.themeService.cancelPreview();
+    this.pickedButtonStyle.set(this.themeService.activeButtonStyle());
+    this.themeService.cancelButtonStylePreview();
+  }
+
+  protected buttonStyleDirty(): boolean {
+    return this.pickedButtonStyle() !== this.themeService.activeButtonStyle();
+  }
+
+  protected pickButtonStyle(key: string): void {
+    this.pickedButtonStyle.set(key);
+    this.themeService.previewButtonStyle(key);
   }
 
   private navLinkGroup(label = '', path = ''): NavLinkGroup {
@@ -136,7 +152,7 @@ export class AdminSettingsPage {
         social: v.social,
         nav: { links: v.navLinks },
         commerce: v.commerce,
-        theme: { key: this.pickedTheme() },
+        theme: { key: this.pickedTheme(), buttonStyle: this.pickedButtonStyle() },
       })
       .subscribe({
         next: () => {

@@ -37,6 +37,25 @@ export const THEMES: ThemeOption[] = [
 
 export const DEFAULT_THEME_KEY = 'emerald';
 
+/**
+ * The three button looks. Only the key reaches the storefront: it lands on
+ * <html data-button> and styles.scss turns it into --btn-bg / --btn-fg /
+ * --btn-line, so nothing here needs to know a colour.
+ */
+export interface ButtonStyleOption {
+  key: string;
+  label: string;
+  hint: string;
+}
+
+export const BUTTON_STYLES: ButtonStyleOption[] = [
+  { key: 'black', label: 'Black', hint: 'Highest contrast. The pack stays the only colour on the card.' },
+  { key: 'green', label: 'Green', hint: 'Your accent doing the selling. Leans pharmacy, and competes with the photography.' },
+  { key: 'white', label: 'White', hint: 'Quietest. Outlined, so it still reads as a button on a white card.' },
+];
+
+export const DEFAULT_BUTTON_STYLE = 'black';
+
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
@@ -54,10 +73,19 @@ export class ThemeService {
     () => THEMES.find((t) => t.key === this.activeKey()) ?? THEMES[0],
   );
 
+  readonly buttonStyles = BUTTON_STYLES;
+
+  /** The saved button look, or black when the key is missing or unrecognised. */
+  readonly activeButtonStyle = computed(() => {
+    const saved = this.siteSettings.theme().buttonStyle;
+    return BUTTON_STYLES.some((b) => b.key === saved) ? saved : DEFAULT_BUTTON_STYLE;
+  });
+
   constructor() {
-    // Site settings arrive after first paint, so the attribute is kept in step
-    // rather than set once at bootstrap.
+    // Site settings arrive after first paint, so the attributes are kept in
+    // step rather than set once at bootstrap.
     effect(() => this.apply(this.activeKey()));
+    effect(() => this.applyButtonStyle(this.activeButtonStyle()));
   }
 
   /**
@@ -73,7 +101,20 @@ export class ThemeService {
     this.apply(this.activeKey());
   }
 
+  /** Try a button look on without saving it. */
+  previewButtonStyle(key: string): void {
+    this.applyButtonStyle(key);
+  }
+
+  cancelButtonStylePreview(): void {
+    this.applyButtonStyle(this.activeButtonStyle());
+  }
+
   private apply(key: string): void {
     this.document.documentElement.setAttribute('data-theme', key);
+  }
+
+  private applyButtonStyle(key: string): void {
+    this.document.documentElement.setAttribute('data-button', key);
   }
 }

@@ -29,6 +29,13 @@ export interface NavSettings {
 export interface ThemeSettings {
   /** Key of a theme defined in styles/_themes.scss. Unknown keys fall back to the default. */
   key: string;
+  /**
+   * Which of the three looks every primary button wears: black, green or
+   * white. Kept apart from `key` because the accent colour and the button
+   * colour are different decisions - green stays the trust colour on ticks,
+   * links and in-stock labels whichever of these is chosen.
+   */
+  buttonStyle: string;
 }
 
 export interface CommerceSettings {
@@ -48,7 +55,7 @@ export interface SiteSettings {
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   brand: { name: 'MUSCLE FREAK NUTRITION', tagline: 'Train Hard. Fuel Right.', logoUrl: '' },
-  theme: { key: 'emerald' },
+  theme: { key: 'emerald', buttonStyle: 'black' },
   footer: {
     about:
       'Genuine sports nutrition, sourced through authorised channels. Protein, pre-workout and daily essentials for people who train seriously.',

@@ -67,8 +67,8 @@
   --color-deal-ink: var(--t-deal-ink);
 
   /* ---- Typography ---- */
-  --font-display: "Fraunces", "Georgia", serif;
-  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
 
   /* ---- Shadows ---- */
   --shadow-soft: 0 2px 8px 0 rgb(0 0 0 / 0.06), 0 1px 2px 0 rgb(0 0 0 / 0.04);
@@ -84,7 +84,9 @@ body {
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: var(--color-cream);
+  /* The marketplaces this is modelled on all sit on white and let the pack
+     photography carry the colour. Tinted bands are opt-in per section. */
+  background-color: #ffffff;
   color: var(--color-charcoal-800);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -153,7 +155,7 @@ textarea:focus-visible,
 /* Container width helper used across pages */
 .container-vitalora {
   width: 100%;
-  max-width: 1320px;
+  max-width: 1440px;
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;
@@ -169,8 +171,18 @@ textarea:focus-visible,
 
 @media (min-width: 1024px) {
   .container-vitalora {
-    padding-left: 2rem;
-    padding-right: 2rem;
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+/* At full width the gutters are 96px, so content settles at 1248px - wide
+   enough for four 294px cards and 24px gaps, and narrow enough that the page
+   still has air down both sides. */
+@media (min-width: 1280px) {
+  .container-vitalora {
+    padding-left: 6rem;
+    padding-right: 6rem;
   }
 }
 
@@ -253,4 +265,102 @@ textarea:focus-visible,
   padding: 0.15rem 0.55rem;
   font-size: 0.7rem;
   font-weight: 600;
+}
+
+/* =====================================================================
+   Buttons.
+
+   Three looks, chosen once in the admin and applied by data-button on
+   <html>: black (default), green, white. Green stays the trust colour
+   everywhere else - ticks, links, in-stock - whichever is picked here,
+   and the deal orange is never a button.
+
+   Deliberately no `display` in these rules: they are plain global
+   classes, so a `display` here would outrank a Tailwind `hidden` /
+   `sm:inline-flex` on the same element. Each usage brings its own.
+   ===================================================================== */
+:root,
+[data-button='black'] {
+  --btn-bg: #10161b;
+  --btn-fg: #ffffff;
+  --btn-line: #10161b;
+}
+[data-button='green'] {
+  --btn-bg: var(--t-accent-700);
+  --btn-fg: #ffffff;
+  --btn-line: var(--t-accent-700);
+}
+[data-button='white'] {
+  --btn-bg: #ffffff;
+  --btn-fg: #10161b;
+  --btn-line: #10161b;
+}
+
+.btn-primary,
+.btn-secondary {
+  align-items: center;
+  justify-content: center;
+  height: 2.625rem;
+  padding: 0 1.15rem;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: filter 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-primary {
+  border: 1.5px solid var(--btn-line);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.18);
+  box-shadow: 0 3px 10px rgb(16 22 27 / 0.16);
+}
+
+.btn-secondary {
+  border: 1.5px solid #10161b;
+  background: #ffffff;
+  color: #10161b;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: #10161b;
+  color: #ffffff;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  filter: none;
+  box-shadow: none;
+}
+
+/* Cards lift on hover. Used by product cards and the home page tiles. */
+.card-lift {
+  transition: box-shadow 0.17s ease, transform 0.17s ease, border-color 0.17s ease;
+}
+.card-lift:hover {
+  box-shadow: 0 10px 26px rgb(16 22 27 / 0.11);
+  transform: translateY(-3px);
+  border-color: #cfd6d8;
+}
+
+/* The rating chip, the one HealthKart pattern worth copying outright. */
+.rating-chip {
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--t-accent-700);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.rating-chip--none {
+  background: #eef1f2;
+  color: #545f68;
 }

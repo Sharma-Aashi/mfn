@@ -10,7 +10,7 @@
     <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
       <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
         <h2 class="font-display text-base font-semibold text-charcoal-900">Storefront Theme</h2>
-        @if (themeDirty()) {
+        @if (themeDirty() || buttonStyleDirty()) {
           <div class="flex items-center gap-3">
             <span class="rounded-full bg-beige-200 px-2.5 py-1 text-[11px] font-semibold text-charcoal-700">Preview - not saved</span>
             <button type="button" (click)="revertTheme()" class="text-xs font-semibold text-charcoal-600 hover:underline">Revert</button>
@@ -47,6 +47,44 @@
           </div>
         </div>
       }
+
+      <!--
+        Separate from the accent, on purpose. The theme above decides the
+        trust colour - ticks, links, in-stock. This decides what every
+        Add to cart and Buy now looks like.
+      -->
+      <div class="mt-6 border-t border-charcoal-100 pt-5">
+        <h3 class="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-charcoal-500">Button style</h3>
+        <p class="mb-3 text-sm text-charcoal-500">
+          Applies to every Add to cart and Buy now on the site. Green stays the trust colour either way.
+        </p>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          @for (b of buttonStyles; track b.key) {
+            <button
+              type="button"
+              (click)="pickButtonStyle(b.key)"
+              [attr.aria-pressed]="pickedButtonStyle() === b.key"
+              class="flex flex-col gap-2 rounded-xl border-2 p-3 text-left transition"
+              [class]="pickedButtonStyle() === b.key ? 'border-forest-700 bg-forest-50' : 'border-charcoal-100 hover:border-charcoal-300'"
+            >
+              <span
+                class="flex h-9 items-center justify-center rounded-[3px] text-[12px] font-bold"
+                [class]="
+                  b.key === 'black'
+                    ? 'bg-charcoal-900 text-white'
+                    : b.key === 'green'
+                      ? 'bg-forest-700 text-white'
+                      : 'border-[1.5px] border-charcoal-900 bg-white text-charcoal-900'
+                "
+              >
+                Add to cart
+              </span>
+              <span class="text-sm font-semibold text-charcoal-800">{{ b.label }}</span>
+              <span class="text-[11px] leading-snug text-charcoal-500">{{ b.hint }}</span>
+            </button>
+          }
+        </div>
+      </div>
     </section>
 
     <!-- Brand -->

@@ -94,7 +94,19 @@
                 }
               </td>
               <td class="px-4 py-3 text-charcoal-500">{{ p.sku }}</td>
-              <td class="px-4 py-3 text-charcoal-700">{{ p.effectivePrice | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+              <!--
+                A product sold in several options has no price of its own -
+                its `price` column stays whatever it was seeded with, and what
+                a customer pays comes from a variant. Showing effectivePrice
+                here reported ₹0 on every multi-option product even after the
+                variant prices had been filled in correctly.
+              -->
+              <td class="px-4 py-3 text-charcoal-700">
+                @if (p.variants.length > 1) {
+                  <span class="text-[11px] text-charcoal-400">from </span>
+                }
+                {{ (p.variants.length > 1 ? p.fromPrice : p.effectivePrice) | currency: 'INR' : 'symbol' : '1.0-0' }}
+              </td>
               <td class="px-4 py-3">
                 <span [class]="p.stockQuantity <= p.lowStockThreshold ? 'text-red-600 font-semibold' : 'text-charcoal-600'">{{ p.stockQuantity }}</span>
               </td>
