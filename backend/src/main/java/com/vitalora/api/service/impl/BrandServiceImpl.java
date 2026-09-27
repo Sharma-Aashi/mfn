@@ -27,11 +27,18 @@ public class BrandServiceImpl implements BrandService {
     private final ProductRepository productRepository;
     private final FileStorageService fileStorageService;
 
+    /**
+     * What the storefront may show. Same rule as categories: a brand a shopper
+     * can click into and find nothing is a dead end, so a brand with no active
+     * products is left out until it has some. Admins still see every brand
+     * through getAllForAdmin(), so invisible here never means missing.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<BrandResponse> getAllActive() {
         return brandRepository.findByActiveTrueOrderByDisplayOrderAscNameAsc().stream()
-                .map(this::toResponseWithCount)
+                .map(this::toResponseWithStorefrontCount)
+                .filter(b -> b.productCount() > 0)
                 .toList();
     }
 
@@ -39,7 +46,8 @@ public class BrandServiceImpl implements BrandService {
     @Transactional(readOnly = true)
     public List<BrandResponse> getFeatured() {
         return brandRepository.findByActiveTrueAndFeaturedTrueOrderByDisplayOrderAscNameAsc().stream()
-                .map(this::toResponseWithCount)
+                .map(this::toResponseWithStorefrontCount)
+                .filter(b -> b.productCount() > 0)
                 .toList();
     }
 
@@ -168,7 +176,13 @@ public class BrandServiceImpl implements BrandService {
                 .orElseThrow(() -> ResourceNotFoundException.of("Brand", id));
     }
 
+    /** Admin counts include drafts, because that is what an admin is managing. */
     private BrandResponse toResponseWithCount(Brand brand) {
         return BrandMapper.toResponse(brand, productRepository.countByBrandId(brand.getId()));
+    }
+
+    /** Storefront counts are what a shopper would actually find. */
+    private BrandResponse toResponseWithStorefrontCount(Brand brand) {
+        return BrandMapper.toResponse(brand, productRepository.countByBrandIdAndActiveTrue(brand.getId()));
     }
 }

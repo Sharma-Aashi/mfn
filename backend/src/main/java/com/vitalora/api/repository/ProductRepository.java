@@ -38,6 +38,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     long countByBrandId(Long brandId);
 
+    /** What a shopper would actually find under this brand. */
+    long countByBrandIdAndActiveTrue(Long brandId);
+
     @EntityGraph(attributePaths = {"images", "categories", "brand", "variants", "variants.inventory"})
     List<Product> findTop8ByActiveTrueAndFeaturedTrue();
 
