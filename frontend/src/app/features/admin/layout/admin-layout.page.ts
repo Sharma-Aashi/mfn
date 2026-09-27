@@ -21,7 +21,7 @@ interface AdminNavItem {
       <!-- Desktop sidebar -->
       <aside class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-charcoal-100 bg-forest-950 lg:flex">
         <div class="px-6 py-6">
-          <app-brand-logo [size]="26" variant="light" nameSize="text-lg" />
+          <app-brand-logo [size]="26" variant="light" />
           <p class="mt-1 pl-0.5 text-[11px] uppercase tracking-wider text-beige-300/70">Admin Panel</p>
         </div>
         <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-2">
@@ -55,7 +55,7 @@ interface AdminNavItem {
       <div class="flex min-w-0 flex-1 flex-col">
         <!-- Mobile top bar -->
         <header class="flex items-center justify-between border-b border-charcoal-100 bg-white px-4 py-3 lg:hidden">
-          <app-brand-logo [size]="22" nameSize="text-base" />
+          <app-brand-logo [size]="22" />
           <button type="button" (click)="mobileNavOpen.set(true)" class="icon-btn" aria-label="Open menu">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
           </button>
@@ -72,7 +72,7 @@ interface AdminNavItem {
         <div class="absolute inset-0 bg-charcoal-900/50" (click)="mobileNavOpen.set(false)"></div>
         <div class="absolute left-0 top-0 flex h-full w-72 flex-col bg-forest-950">
           <div class="flex items-center justify-between px-5 py-4">
-            <app-brand-logo [size]="22" variant="light" nameSize="text-base" />
+            <app-brand-logo [size]="22" variant="light" />
             <button type="button" (click)="mobileNavOpen.set(false)" class="text-white" aria-label="Close menu">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
