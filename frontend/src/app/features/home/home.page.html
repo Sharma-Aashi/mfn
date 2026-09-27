@@ -1,273 +1,239 @@
-<!-- Hero -->
-@if (content(); as c) {
-  <section class="relative overflow-hidden bg-gradient-to-b from-beige-100 via-cream to-cream">
-    <div class="container-vitalora grid grid-cols-1 items-center gap-10 py-14 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:py-28">
-      <div class="order-2 lg:order-1">
-        @if (c.hero.eyebrow) {
-          <span class="mb-5 inline-block rounded-full bg-forest-100 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-forest-700">
-            {{ c.hero.eyebrow }}
-          </span>
-        }
-        <h1 class="font-display text-4xl font-semibold leading-[1.1] text-charcoal-900 sm:text-5xl lg:text-[3.4rem]">
-          {{ c.hero.title }}
-        </h1>
-        <p class="mt-5 max-w-lg text-base leading-relaxed text-charcoal-500 sm:text-lg">
-          {{ c.hero.subtitle }}
+<!--
+  Running order, settled with the owner:
+  banner -> Hot right now -> Shop by category -> mid banner -> Best sellers
+  -> Shop by goal -> brands -> the story.
+
+  Each section deliberately has its own shape. The previous version ran four
+  identical card grids one after another, which is what made the page read as
+  repetitive however good any single row looked.
+-->
+
+<!-- ============ BANNER ============ -->
+<section class="relative isolate overflow-hidden bg-charcoal-950">
+  <img
+    [src]="heroImage() | mediaUrl"
+    alt=""
+    aria-hidden="true"
+    class="absolute inset-0 h-full w-full object-cover"
+  />
+  <!-- The photograph is shot dark down its left side; this only deepens it so
+       white type clears 4.5:1 wherever the image lands. -->
+  <span class="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-charcoal-950/85 via-charcoal-950/60 to-transparent lg:w-3/4"></span>
+
+  <div class="container-vitalora relative flex min-h-[380px] items-center py-14 lg:min-h-[500px] lg:py-0">
+    <div class="flex max-w-[580px] flex-col items-start gap-4 text-white">
+      @if (content()?.hero?.eyebrow) {
+        <span class="rounded-[3px] bg-deal px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-[0.14em] text-deal-ink">
+          {{ content()!.hero.eyebrow }}
+        </span>
+      }
+      <h1 class="font-display text-[34px] font-extrabold leading-[1.04] tracking-[-0.032em] sm:text-[44px] lg:text-[56px]">
+        {{ content()?.hero?.title || 'Built for the last rep.' }}
+      </h1>
+      @if (content()?.hero?.subtitle) {
+        <p class="max-w-[430px] text-[15px] leading-relaxed text-charcoal-200 sm:text-[16.5px]">
+          {{ content()!.hero.subtitle }}
         </p>
-        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-          <a [routerLink]="c.hero.primaryCtaLink" class="rounded-full bg-forest-700 px-7 py-3.5 text-center text-sm font-semibold text-white shadow-soft transition hover:bg-forest-800">
-            {{ c.hero.primaryCtaText }}
-          </a>
-          <a [routerLink]="c.hero.secondaryCtaLink" class="rounded-full border border-charcoal-200 bg-white px-7 py-3.5 text-center text-sm font-semibold text-charcoal-800 transition hover:border-forest-300 hover:text-forest-700">
-            {{ c.hero.secondaryCtaText }}
-          </a>
-        </div>
-      </div>
-      <div class="order-1 lg:order-2">
-        @if (c.hero.image) {
-          <div class="relative mx-auto aspect-square max-w-md overflow-hidden rounded-[2.5rem] bg-beige-200 shadow-lift sm:max-w-lg">
-            <img [src]="c.hero.image | mediaUrl" [alt]="c.hero.title" class="h-full w-full object-cover" />
-          </div>
-        }
-      </div>
-    </div>
-  </section>
-
-  <!-- USP -->
-  <section class="border-y border-charcoal-100 bg-white">
-    <div class="container-vitalora grid grid-cols-2 gap-6 py-10 sm:grid-cols-4 sm:gap-4">
-      @for (item of c.usp.items; track item.title) {
-        <div class="flex flex-col items-center gap-2 text-center">
-          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-beige-100 text-forest-700">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-              <path [attr.d]="uspIconPath(item.icon)" />
-            </svg>
-          </div>
-          <h3 class="text-sm font-semibold text-charcoal-900">{{ item.title }}</h3>
-          <p class="hidden text-xs leading-relaxed text-charcoal-500 sm:block">{{ item.description }}</p>
-        </div>
       }
-    </div>
-  </section>
-}
-
-<!-- Categories: discovery comes before merchandising on a marketplace. -->
-<section class="bg-beige-50 py-16 sm:py-20">
-  <div class="container-vitalora">
-    <div class="mb-10 text-center">
-      <span class="text-xs font-semibold uppercase tracking-wider text-forest-600">Browse the range</span>
-      <h2 class="mt-1 font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">Shop by category</h2>
-    </div>
-    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      @for (category of topCategories(); track category.id) {
+      <div class="mt-1 flex flex-wrap gap-3">
         <a
-          [routerLink]="['/products']"
-          [queryParams]="{ category: category.slug }"
-          class="group flex flex-col items-center gap-3 rounded-2xl bg-white p-5 text-center shadow-soft transition hover:-translate-y-1 hover:shadow-lift"
+          [routerLink]="content()?.hero?.primaryCtaLink || '/products'"
+          class="inline-flex h-[50px] items-center rounded-[3px] bg-white px-8 text-[15px] font-bold text-charcoal-900 transition hover:bg-beige-100"
         >
-          <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-forest-50">
-            @if (category.imageUrl) {
-              <img [src]="category.imageUrl | mediaUrl" [alt]="category.name" loading="lazy" class="h-full w-full object-cover" />
-            }
-          </div>
-          <span class="text-sm font-semibold text-charcoal-800 group-hover:text-forest-700">{{ category.name }}</span>
+          {{ content()?.hero?.primaryCtaText || 'Shop the range' }}
         </a>
-      }
+      </div>
     </div>
   </div>
 </section>
 
-<!-- Featured brands: a marketplace has to show the names people came for. -->
-@if (brands().length > 0) {
-  <section class="border-b border-charcoal-100 bg-white py-12 sm:py-14">
-    <div class="container-vitalora">
-      <div class="mb-7 flex items-end justify-between">
-        <div>
-          <span class="text-xs font-semibold uppercase tracking-wider text-forest-600">Authorised seller</span>
-          <h2 class="mt-1 font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">Brands we carry</h2>
-        </div>
-        <a routerLink="/brands" class="hidden text-sm font-semibold text-forest-700 hover:underline sm:inline">All brands &rarr;</a>
-      </div>
-      <div class="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-        @for (brand of brands(); track brand.id) {
-          <a
-            [routerLink]="['/brands', brand.slug]"
-            class="flex h-24 flex-col items-center justify-center gap-2 rounded-xl border border-charcoal-100 bg-white px-3 text-center transition hover:border-forest-300 hover:shadow-card"
-          >
-            @if (brand.logoUrl) {
-              <img [src]="brand.logoUrl | mediaUrl" [alt]="brand.name" loading="lazy" class="max-h-10 w-auto object-contain" />
-            } @else {
-              <span class="font-display text-sm font-semibold text-charcoal-800">{{ brand.name }}</span>
-            }
-            @if (brand.houseBrand) {
-              <span class="rounded-full bg-forest-50 px-2 py-0.5 text-[10px] font-semibold text-forest-700">Our label</span>
-            }
-          </a>
-        }
-      </div>
-      <a routerLink="/brands" class="mt-6 block text-center text-sm font-semibold text-forest-700 hover:underline sm:hidden">All brands &rarr;</a>
+<!-- ============ HOT RIGHT NOW ============ -->
+@if (hotProducts().length > 0) {
+  <section class="container-vitalora pt-11">
+    <div class="flex items-center justify-between gap-4">
+      <h2 class="font-display text-[22px] font-extrabold tracking-[-0.022em] sm:text-[27px]">Hot right now</h2>
+      <a routerLink="/products" [queryParams]="{ sort: 'discount' }" class="text-sm font-semibold text-forest-700 hover:underline hover:underline-offset-4">
+        All deals
+      </a>
+    </div>
+    <div class="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+      @for (p of hotProducts(); track p.id) {
+        <app-product-card [product]="p" />
+      }
     </div>
   </section>
 }
 
-<!-- Featured Products -->
-<section class="py-16 sm:py-20">
-  <div class="container-vitalora">
-    <div class="mb-10 flex items-end justify-between">
-      <div>
-        <span class="text-xs font-semibold uppercase tracking-wider text-forest-600">Curated For You</span>
-        <h2 class="mt-1 font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">Featured Products</h2>
+<!-- ============ SHOP BY CATEGORY — buttons, not cards ============ -->
+@if (topCategories().length > 0) {
+  <section class="container-vitalora flex flex-col items-center gap-5 pt-12">
+    <h2 class="font-display text-[19px] font-extrabold tracking-[0.01em] sm:text-[21px]">SHOP BY CATEGORY</h2>
+    <div class="flex flex-wrap justify-center gap-3">
+      @for (c of topCategories(); track c.id) {
+        <a
+          [routerLink]="['/products']"
+          [queryParams]="{ category: c.slug }"
+          class="inline-flex h-11 items-center rounded-[2px] bg-charcoal-900 px-5 text-[12.5px] font-bold tracking-[0.04em] text-white transition hover:bg-forest-700"
+        >
+          {{ c.name | uppercase }}
+        </a>
+      }
+    </div>
+  </section>
+}
+
+<!-- ============ MID BANNER ============ -->
+<section class="container-vitalora pt-12">
+  <div class="relative isolate overflow-hidden rounded-xl bg-charcoal-950">
+    <img [src]="midBannerImage | mediaUrl" alt="" aria-hidden="true" class="absolute inset-0 h-full w-full object-cover" />
+    <span class="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-charcoal-950/85 via-charcoal-950/55 to-transparent lg:w-3/4"></span>
+    <div class="relative flex min-h-[240px] items-center px-7 py-10 sm:px-12 lg:min-h-[300px]">
+      <div class="flex max-w-[460px] flex-col items-start gap-3.5 text-white">
+        <span class="inline-flex items-center gap-2 rounded-[3px] bg-deal px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-deal-ink">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M13 2L4.5 13H11l-1 9 8.5-11H12z" />
+          </svg>
+          {{ content()?.promoBanner?.subtitle || 'Launch offer' }}
+        </span>
+        <h2 class="font-display text-[30px] font-extrabold leading-[1.02] tracking-[-0.032em] sm:text-[42px]">
+          {{ content()?.promoBanner?.title || 'Fresh stock, straight from the distributor.' }}
+        </h2>
+        <p class="text-[14px] leading-relaxed text-charcoal-200 sm:text-[15px]">
+          Free delivery over ₹999, cash on delivery anywhere in India.
+        </p>
+        <a
+          [routerLink]="content()?.promoBanner?.ctaLink || '/products'"
+          class="mt-1 inline-flex h-[46px] items-center rounded-[3px] bg-white px-7 text-[14.5px] font-bold text-charcoal-900 transition hover:bg-beige-100"
+        >
+          {{ content()?.promoBanner?.ctaText || 'Shop now' }}
+        </a>
       </div>
-      <a routerLink="/products" class="hidden text-sm font-semibold text-forest-700 hover:underline sm:inline">View All →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BEST SELLERS ============ -->
+<section class="mt-12 bg-beige-50 py-11">
+  <div class="container-vitalora">
+    <div class="flex items-center justify-between gap-4">
+      <h2 class="font-display text-[22px] font-extrabold tracking-[-0.022em] sm:text-[27px]">Best sellers</h2>
+      <a routerLink="/products" [queryParams]="{ sort: 'popular' }" class="text-sm font-semibold text-forest-700 hover:underline hover:underline-offset-4">
+        View all
+      </a>
     </div>
 
     @if (loading()) {
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
+      <div class="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
         @for (i of [1, 2, 3, 4]; track i) {
-          <div class="aspect-[3/4.2] skeleton rounded-2xl"></div>
+          <div class="skeleton h-[420px] rounded-[10px]"></div>
+        }
+      </div>
+    } @else if (topSellers().length > 0) {
+      <div class="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+        @for (p of topSellers(); track p.id) {
+          <app-product-card [product]="p" />
         }
       </div>
     } @else {
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
-        @for (product of featured(); track product.id) {
-          <app-product-card [product]="product" />
-        }
-      </div>
+      <p class="mt-5 text-sm text-charcoal-500">Nothing is flagged as a best seller yet.</p>
     }
-    <a routerLink="/products" class="mt-8 block text-center text-sm font-semibold text-forest-700 hover:underline sm:hidden">View All Products →</a>
   </div>
 </section>
 
-<!-- Why VITALORA -->
-@if (content(); as c) {
-  <section class="py-16 sm:py-20">
-    <div class="container-vitalora">
-      <div class="mb-10 text-center">
-        <h2 class="font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">{{ c.whyVitalora.heading }}</h2>
-      </div>
-      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        @for (item of c.whyVitalora.items; track item.title) {
-          <div class="rounded-2xl border border-charcoal-100 bg-white p-6">
-            <h3 class="font-display text-base font-semibold text-forest-800">{{ item.title }}</h3>
-            <p class="mt-2 text-sm leading-relaxed text-charcoal-500">{{ item.description }}</p>
-          </div>
-        }
-      </div>
-    </div>
-  </section>
-}
-
-<!-- Best Sellers -->
-<section class="bg-beige-50 py-16 sm:py-20">
-  <div class="container-vitalora">
-    <div class="mb-10 flex items-end justify-between">
-      <div>
-        <span class="text-xs font-semibold uppercase tracking-wider text-forest-600">Customer Favorites</span>
-        <h2 class="mt-1 font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">Best Sellers</h2>
-      </div>
-      <a routerLink="/products" [queryParams]="{ sort: 'popular' }" class="hidden text-sm font-semibold text-forest-700 hover:underline sm:inline">View All →</a>
-    </div>
-    <div class="scrollbar-none flex gap-4 overflow-x-auto pb-2 sm:gap-6">
-      @for (product of bestSellers(); track product.id) {
-        <div class="w-[46%] shrink-0 sm:w-[30%] lg:w-[23%]">
-          <app-product-card [product]="product" />
-        </div>
-      }
-    </div>
-  </div>
-</section>
-
-<!-- Featured banners -->
-@if (banners().length > 0) {
-  <section class="py-4">
-    <div class="container-vitalora grid grid-cols-1 gap-5 sm:grid-cols-2">
-      @for (banner of banners(); track banner.id) {
-        <a [routerLink]="banner.ctaLink || '/products'" class="group relative overflow-hidden rounded-3xl">
-          @if (banner.imageUrl) {
-            <img [src]="banner.imageUrl | mediaUrl" [alt]="banner.title" loading="lazy" class="h-48 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-56" />
-          } @else {
-            <div class="h-48 w-full bg-forest-800 sm:h-56"></div>
-          }
-          <div class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-charcoal-900/70 via-charcoal-900/10 to-transparent p-6">
-            <h3 class="font-display text-xl font-semibold text-white">{{ banner.title }}</h3>
-            @if (banner.subtitle) {
-              <p class="mt-1 text-sm text-beige-100/90">{{ banner.subtitle }}</p>
-            }
-            @if (banner.ctaText) {
-              <span class="mt-3 inline-flex w-fit items-center gap-1 text-sm font-semibold text-white underline-offset-4 group-hover:underline">
-                {{ banner.ctaText }} →
-              </span>
-            }
-          </div>
+<!-- ============ SHOP BY GOAL — icons, not cards ============ -->
+@if (goalCategories().length > 0) {
+  <section class="container-vitalora flex flex-col items-center gap-7 pt-12">
+    <h2 class="font-display text-[19px] font-extrabold tracking-[0.01em] sm:text-[21px]">SHOP BY GOAL</h2>
+    <div class="grid w-full grid-cols-2 gap-8 sm:grid-cols-3 lg:flex lg:justify-around">
+      @for (g of goalCategories(); track g.id) {
+        <a
+          [routerLink]="['/products']"
+          [queryParams]="{ category: g.slug }"
+          class="group flex flex-col items-center gap-3.5"
+        >
+          <svg
+            width="46"
+            height="46"
+            viewBox="0 0 48 48"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="text-forest-700 transition group-hover:text-charcoal-900"
+            aria-hidden="true"
+          >
+            <path [attr.d]="goalIcon(g.slug)" />
+          </svg>
+          <span class="text-center text-[13px] font-bold tracking-[0.03em]">{{ g.name | uppercase }}</span>
         </a>
       }
     </div>
   </section>
 }
 
-<!-- Testimonials -->
-@if (testimonials().length > 0) {
-  <section class="py-16 sm:py-20">
-    <div class="container-vitalora">
-      <div class="mb-10 text-center">
-        <span class="text-xs font-semibold uppercase tracking-wider text-forest-600">Real Stories</span>
-        <h2 class="mt-1 font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">What Our Customers Say</h2>
-      </div>
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        @for (t of testimonials(); track t.customerName + t.productName) {
-          <div class="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-soft ring-1 ring-charcoal-100/60">
-            <app-star-rating [rating]="t.rating" [size]="14" />
-            <p class="text-sm leading-relaxed text-charcoal-600">"{{ t.comment }}"</p>
-            <div class="mt-auto flex items-center gap-3 pt-2">
-              <div class="flex h-9 w-9 items-center justify-center rounded-full bg-forest-100 text-sm font-semibold text-forest-700">
-                {{ t.customerName.charAt(0) }}
-              </div>
-              <div>
-                <p class="text-sm font-semibold text-charcoal-900">{{ t.customerName }}</p>
-                <p class="text-xs text-charcoal-400">{{ t.productName }}</p>
-              </div>
-            </div>
-          </div>
-        }
-      </div>
+<!-- ============ BRANDS ============ -->
+@if (brands().length > 0) {
+  <section class="container-vitalora pt-12">
+    <div class="flex items-center justify-between gap-4">
+      <h2 class="font-display text-[19px] font-extrabold tracking-[-0.018em] sm:text-[21px]">Brands we stock</h2>
+      <a routerLink="/brands" class="text-sm font-semibold text-forest-700 hover:underline hover:underline-offset-4">All brands</a>
+    </div>
+    <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 lg:gap-5">
+      @for (b of brands(); track b.id) {
+        <a
+          [routerLink]="['/brands', b.slug]"
+          class="card-lift flex h-[84px] flex-col items-center justify-center gap-1 rounded-[10px] border border-charcoal-100 bg-white px-3"
+        >
+          @if (b.logoUrl) {
+            <img [src]="b.logoUrl | mediaUrl" [alt]="b.name" class="max-h-10 w-auto object-contain" />
+          } @else {
+            <span class="font-display text-base font-extrabold tracking-[-0.015em]">{{ b.name }}</span>
+          }
+          <span class="text-[11px] text-charcoal-400">
+            {{ b.houseBrand ? 'our own label' : b.productCount + ' products' }}
+          </span>
+        </a>
+      }
     </div>
   </section>
 }
 
-<!-- Promo: the one dark band on the page, used for the offer rather than the page. -->
-@if (content(); as c) {
-  <section class="bg-charcoal-900">
-    <div class="container-vitalora flex flex-col items-start gap-6 py-12 sm:flex-row sm:items-center sm:justify-between sm:py-14">
-      <div>
-        <span class="text-xs font-semibold uppercase tracking-[0.16em] text-forest-300">Limited time</span>
-        <h2 class="mt-2 font-display text-2xl font-semibold text-white sm:text-3xl">{{ c.promoBanner.title }}</h2>
-        <p class="mt-2 text-charcoal-300">{{ c.promoBanner.subtitle }}</p>
+<!-- ============ THE STORY — the one block a competitor cannot copy ============ -->
+@if (content()?.whyVitalora; as why) {
+  <section class="mt-12 bg-charcoal-950 py-14 text-white">
+    <div class="container-vitalora flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-16">
+      <div class="flex max-w-[580px] flex-col gap-4">
+        <span class="text-[11.5px] font-bold uppercase tracking-[0.16em] text-forest-300">The Muscle Freak standard</span>
+        <h2 class="font-display text-[28px] font-extrabold leading-[1.06] tracking-[-0.03em] sm:text-[40px]">
+          {{ why.heading }}
+        </h2>
+        @if (why.body) {
+          <p class="text-[15.5px] leading-relaxed text-charcoal-300">{{ why.body }}</p>
+        }
+        <a routerLink="/about" class="mt-1 inline-flex items-center gap-2 text-[14.5px] font-bold text-white hover:underline hover:underline-offset-4">
+          Read our story
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </a>
       </div>
-      <a [routerLink]="c.promoBanner.ctaLink" class="shrink-0 rounded-full bg-white px-7 py-3 text-sm font-semibold text-charcoal-900 transition hover:bg-beige-100">
-        {{ c.promoBanner.ctaText }}
-      </a>
-    </div>
-  </section>
 
-  <!-- Newsletter -->
-  <section class="py-16 sm:py-20">
-    <div class="container-vitalora max-w-xl text-center">
-      <h2 class="font-display text-2xl font-semibold text-charcoal-900">{{ c.newsletter.heading }}</h2>
-      <p class="mt-2 text-charcoal-500">{{ c.newsletter.subtitle }}</p>
-      <form (ngSubmit)="subscribeNewsletter()" class="mx-auto mt-6 flex max-w-md flex-col gap-3 sm:flex-row">
-        <input
-          type="email"
-          required
-          [ngModel]="newsletterEmail()"
-          (ngModelChange)="newsletterEmail.set($event)"
-          name="email"
-          placeholder="Enter your email"
-          class="flex-1 rounded-full border border-charcoal-200 bg-white px-5 py-3 text-sm outline-none focus:border-forest-400"
-        />
-        <button type="submit" class="rounded-full bg-forest-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-forest-800">
-          Subscribe
-        </button>
-      </form>
+      <div class="flex flex-1 flex-col gap-3.5">
+        @for (item of why.items; track item.title) {
+          <div class="flex items-start gap-4 rounded-[9px] border border-charcoal-800 bg-charcoal-900 p-5">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-forest-950">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-forest-300" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            </span>
+            <span class="flex flex-col gap-1">
+              <span class="text-[15px] font-bold">{{ item.title }}</span>
+              <span class="text-[13px] leading-relaxed text-charcoal-400">{{ item.description }}</span>
+            </span>
+          </div>
+        }
+      </div>
     </div>
   </section>
 }

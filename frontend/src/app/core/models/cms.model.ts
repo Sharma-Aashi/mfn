@@ -27,6 +27,12 @@ export interface WhyItem {
 
 export interface WhySection {
   heading: string;
+  /**
+   * The founder's note under the heading. It is the one paragraph on the home
+   * page a competitor cannot copy, so it gets its own field rather than being
+   * squeezed into an item.
+   */
+  body?: string;
   items: WhyItem[];
 }
 

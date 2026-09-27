@@ -93,6 +93,14 @@
           <label for="whyHeading" class="form-label">Section Heading</label>
           <input id="whyHeading" type="text" formControlName="whyHeading" class="form-input" />
         </div>
+        <div class="mb-4">
+          <label for="whyBody" class="form-label">Your note</label>
+          <textarea id="whyBody" rows="4" formControlName="whyBody" class="form-input"></textarea>
+          <p class="mt-1.5 text-xs text-charcoal-400">
+            Two or three sentences in your own words, under the heading. This is the one paragraph on the
+            home page a competitor cannot copy — leave it blank and the section just shows the reasons.
+          </p>
+        </div>
         <div formArrayName="whyItems" class="space-y-3">
           @for (item of whyItems.controls; track item; let i = $index; let last = $last) {
             <div [formGroupName]="i" class="flex gap-3 rounded-xl bg-beige-50 p-3">
