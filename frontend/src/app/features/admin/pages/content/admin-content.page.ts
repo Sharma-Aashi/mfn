@@ -12,6 +12,25 @@ type Tab = 'home' | 'about' | 'contact' | 'policies' | 'banners';
 
 type UspItemGroup = FormGroup<{ icon: FormControl<string>; title: FormControl<string>; description: FormControl<string> }>;
 type WhyItemGroup = FormGroup<{ title: FormControl<string>; description: FormControl<string> }>;
+type SectionGroup = FormGroup<{
+  key: FormControl<string>;
+  heading: FormControl<string>;
+  visible: FormControl<boolean>;
+  image: FormControl<string>;
+}>;
+
+/** Plain-English names for the blocks, keyed on what the markup switches on. */
+const SECTION_LABELS: Record<string, string> = {
+  hero: 'Top banner',
+  hot: 'Hot right now',
+  categories: 'Shop by category',
+  midBanner: 'Middle banner',
+  bestSellers: 'Best sellers',
+  stacks: 'Stacks (combos)',
+  goals: 'Shop by goal',
+  brands: 'Brands',
+  story: 'Our story',
+};
 
 /** Icon keys the homepage USP strip knows how to draw. */
 export const USP_ICON_OPTIONS = [
@@ -63,6 +82,7 @@ export class AdminContentPage {
     uspItems: new FormArray<UspItemGroup>([]),
     whyHeading: [''],
     whyBody: [''],
+    sections: new FormArray<SectionGroup>([]),
     whyItems: new FormArray<WhyItemGroup>([]),
     promoTitle: [''],
     promoSubtitle: [''],
@@ -128,6 +148,32 @@ export class AdminContentPage {
     return this.homeForm.controls.uspItems;
   }
 
+  protected get sections(): FormArray<SectionGroup> {
+    return this.homeForm.controls.sections;
+  }
+
+  /** Only the two banner blocks take a photograph. */
+  protected isBannerSection(key: string): boolean {
+    return key === 'hero' || key === 'midBanner';
+  }
+
+  /**
+   * Shipped with the frontend build rather than uploaded: the API's upload
+   * folder is wiped on every container restart, so an uploaded banner would
+   * vanish on the next deploy.
+   */
+  protected readonly bannerChoices = [
+    { value: 'assets/brand/banner-barbell.png', label: 'Loaded barbell' },
+    { value: 'assets/brand/banner-dumbbells.png', label: 'Dumbbell rack' },
+    { value: 'assets/brand/banner-kettlebells.png', label: 'Kettlebells' },
+    { value: 'assets/brand/banner-gym.png', label: 'Empty gym' },
+  ];
+
+  /** Plain-English name for a block, since `key` is not editable. */
+  protected sectionLabel(key: string): string {
+    return SECTION_LABELS[key] ?? key;
+  }
+
   protected get whyItems(): FormArray<WhyItemGroup> {
     return this.homeForm.controls.whyItems;
   }
@@ -149,6 +195,16 @@ export class AdminContentPage {
 
   private uspItemGroup(icon = 'leaf', title = '', description = ''): UspItemGroup {
     return this.fb.nonNullable.group({ icon: [icon], title: [title], description: [description] });
+  }
+
+  private sectionGroup(key: string, heading = '', visible = true, image = ''): SectionGroup {
+    return this.fb.nonNullable.group({
+      // Not editable: it binds the row to the markup that renders it.
+      key: [key],
+      heading: [heading],
+      visible: [visible],
+      image: [image],
+    });
   }
 
   private whyItemGroup(title = '', description = ''): WhyItemGroup {
@@ -189,6 +245,10 @@ export class AdminContentPage {
       (c.usp?.items ?? []).forEach((i) => this.uspItems.push(this.uspItemGroup(i.icon, i.title, i.description)));
       this.whyItems.clear();
       (c.whyVitalora?.items ?? []).forEach((i) => this.whyItems.push(this.whyItemGroup(i.title, i.description)));
+      this.sections.clear();
+      (c.sections ?? []).forEach((sec) =>
+        this.sections.push(this.sectionGroup(sec.key, sec.heading, sec.visible, sec.image ?? '')),
+      );
       this.homeForm.markAsPristine();
     });
   }
@@ -209,6 +269,13 @@ export class AdminContentPage {
         whyVitalora: { heading: v.whyHeading, body: v.whyBody, items: v.whyItems.filter((i) => i.title.trim()) },
         promoBanner: { title: v.promoTitle, subtitle: v.promoSubtitle, ctaText: v.promoCtaText, ctaLink: v.promoCtaLink },
         newsletter: { heading: v.newsletterHeading, subtitle: v.newsletterSubtitle },
+        // Array order is page order, so no index column to keep in step.
+        sections: v.sections.map((sec) => ({
+          key: sec.key,
+          heading: sec.heading,
+          visible: sec.visible,
+          ...(this.isBannerSection(sec.key) ? { image: sec.image } : {}),
+        })),
       })
       .subscribe({
         next: () => { this.saving.set(false); this.homeForm.markAsPristine(); this.toast.success('Homepage content updated.'); },

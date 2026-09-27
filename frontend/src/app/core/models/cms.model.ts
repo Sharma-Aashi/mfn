@@ -48,12 +48,35 @@ export interface NewsletterSection {
   subtitle: string;
 }
 
+/**
+ * One block of the home page, as the admin arranges it.
+ *
+ * <p>The array's order is the page's order, so reordering is a drag rather
+ * than a migration. `key` binds the row to the markup that renders it, which
+ * is why it is not editable: the heading is the words, the key is the block.
+ */
+export interface HomeSection {
+  /** Which block this row controls. Fixed — the admin edits around it. */
+  key: string;
+  /** What the section calls itself on the page. Empty hides the title only. */
+  heading: string;
+  visible: boolean;
+  /**
+   * For the two banner blocks: which shipped photograph to use. Chosen from a
+   * fixed list rather than uploaded, because the API's upload folder is wiped
+   * on every container restart.
+   */
+  image?: string;
+}
+
 export interface HomeContent {
   hero: HeroSection;
   usp: UspSection;
   whyVitalora: WhySection;
   promoBanner: PromoBannerSection;
   newsletter: NewsletterSection;
+  /** Missing on an older database; the page then falls back to its built-in order. */
+  sections?: HomeSection[];
 }
 
 export interface TextSection {

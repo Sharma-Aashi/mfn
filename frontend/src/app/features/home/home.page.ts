@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { Brand } from '../../core/models/brand.model';
 import { Category } from '../../core/models/category.model';
 import { ProductSummary } from '../../core/models/product.model';
-import { HomeContent } from '../../core/models/cms.model';
+import { HomeContent, HomeSection } from '../../core/models/cms.model';
 import { BrandService } from '../../core/services/brand.service';
 import { CategoryService } from '../../core/services/category.service';
 import { CmsService } from '../../core/services/cms.service';
@@ -33,6 +33,23 @@ const FALLBACK_GOAL_ICON = 'M24 41S8 31 8 19.5A8.5 8.5 0 0124 14a8.5 8.5 0 0116 
 /** Shipped with the build, so a redeploy can never wipe them. */
 const DEFAULT_HERO = 'assets/brand/banner-barbell.png';
 const DEFAULT_MID_BANNER = 'assets/brand/banner-dumbbells.png';
+
+/**
+ * The running order to use when the CMS has none - an older database, or a
+ * saved list that somehow came back empty. Without this the page would render
+ * nothing at all rather than degrading to its designed order.
+ */
+const DEFAULT_SECTIONS: HomeSection[] = [
+  { key: 'hero', heading: '', visible: true, image: DEFAULT_HERO },
+  { key: 'hot', heading: 'Hot right now', visible: true },
+  { key: 'categories', heading: 'Shop by category', visible: true },
+  { key: 'midBanner', heading: '', visible: true, image: DEFAULT_MID_BANNER },
+  { key: 'bestSellers', heading: 'Best sellers', visible: true },
+  { key: 'stacks', heading: 'Stacks that work together', visible: true },
+  { key: 'goals', heading: 'Shop by goal', visible: true },
+  { key: 'brands', heading: 'Brands we stock', visible: true },
+  { key: 'story', heading: '', visible: true },
+];
 
 @Component({
   selector: 'app-home',
@@ -81,7 +98,23 @@ export class HomePage {
   protected readonly hotProducts = computed(() => this.featured().slice(0, 4));
   protected readonly topSellers = computed(() => this.bestSellers().slice(0, 4));
 
-  protected readonly heroImage = computed(() => this.content()?.hero?.image?.trim() || DEFAULT_HERO);
+  /**
+   * What actually renders, in the order the admin arranged. Hidden rows are
+   * dropped here rather than in the template, so the markup never has to know
+   * that a section exists but is switched off.
+   */
+  protected readonly sections = computed<HomeSection[]>(() => {
+    const saved = this.content()?.sections;
+    const rows = saved && saved.length > 0 ? saved : DEFAULT_SECTIONS;
+    return rows.filter((s) => s.visible);
+  });
+
+  /** A banner's chosen photograph, falling back to the one shipped for it. */
+  protected bannerImage(s: HomeSection): string {
+    if (s.image?.trim()) return s.image.trim();
+    if (s.key === 'hero') return this.content()?.hero?.image?.trim() || DEFAULT_HERO;
+    return DEFAULT_MID_BANNER;
+  }
 
   /**
    * A stack only advertises a saving when its contents actually cost more
@@ -94,7 +127,6 @@ export class HomePage {
     if (was <= 0 || now <= 0 || now >= was) return 0;
     return Math.round(((was - now) / was) * 100);
   }
-  protected readonly midBannerImage = DEFAULT_MID_BANNER;
 
   constructor() {
     this.seo.update(

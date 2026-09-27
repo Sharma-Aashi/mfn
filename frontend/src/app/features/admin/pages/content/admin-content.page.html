@@ -20,6 +20,70 @@
   <!-- ===================================================== HOMEPAGE -->
   @if (tab() === 'home') {
     <form [formGroup]="homeForm" (ngSubmit)="saveHome()" class="space-y-6">
+      <!--
+        The running order of the home page. The list's order is the page's
+        order, so moving a block is a swap here and nothing else. `key` is
+        fixed because it binds the row to the markup that draws it; the
+        heading is the words shown above that block.
+      -->
+      <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
+        <h2 class="mb-1 font-display text-base font-semibold text-charcoal-900">Home page sections</h2>
+        <p class="mb-4 text-xs text-charcoal-400">
+          Drag order, on/off, and the words above each block. A section with nothing in it stays hidden
+          whether it is switched on or not.
+        </p>
+
+        <div formArrayName="sections" class="flex flex-col gap-2">
+          @for (row of sections.controls; track $index; let i = $index) {
+            <div [formGroupName]="i" class="flex flex-wrap items-center gap-3 rounded-xl bg-beige-50 p-3">
+              <div class="flex flex-col">
+                <button
+                  type="button" (click)="moveItem(sections, i, -1)" [disabled]="i === 0"
+                  class="text-charcoal-400 hover:text-forest-700 disabled:opacity-20" aria-label="Move up"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 15l-6-6-6 6" /></svg>
+                </button>
+                <button
+                  type="button" (click)="moveItem(sections, i, 1)" [disabled]="i === sections.length - 1"
+                  class="text-charcoal-400 hover:text-forest-700 disabled:opacity-20" aria-label="Move down"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6" /></svg>
+                </button>
+              </div>
+
+              <span class="w-40 shrink-0 text-sm font-semibold text-charcoal-800">{{ sectionLabel(row.controls.key.value) }}</span>
+
+              <label class="flex items-center gap-2 text-xs text-charcoal-600">
+                <input type="checkbox" formControlName="visible" class="h-4 w-4 rounded border-charcoal-300" />
+                Show
+              </label>
+
+              <div class="min-w-[180px] flex-1">
+                <input
+                  type="text" formControlName="heading" placeholder="Heading (blank hides the title)"
+                  class="form-input"
+                />
+              </div>
+
+              @if (isBannerSection(row.controls.key.value)) {
+                <div class="min-w-[180px]">
+                  <select formControlName="image" class="form-select">
+                    @for (b of bannerChoices; track b.value) {
+                      <option [value]="b.value">{{ b.label }}</option>
+                    }
+                  </select>
+                </div>
+              }
+            </div>
+          }
+          @if (sections.length === 0) {
+            <p class="text-sm text-charcoal-500">
+              No saved order yet — the page is using its built-in one. Save this form once to take control of it.
+            </p>
+          }
+        </div>
+      </section>
+
       <section class="rounded-2xl border border-charcoal-100 bg-white p-6">
         <h2 class="mb-4 font-display text-base font-semibold text-charcoal-900">Hero Section</h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
