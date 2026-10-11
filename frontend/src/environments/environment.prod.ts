@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  // If Render assigns a different URL than expected (the "vitalora-api" name
-  // is first-come-first-served across all of Render), update this to match
-  // and rebuild before re-uploading to cPanel.
-  apiBaseUrl: 'https://vitalora-api.onrender.com/api',
+  // Backend is hosted on Railway. Update this if the service's public domain
+  // is changed in the Railway dashboard, then rebuild the frontend and
+  // re-upload the dist/ to shared hosting.
+  apiBaseUrl: 'https://vitalora-api-production.up.railway.app/api',
 };
