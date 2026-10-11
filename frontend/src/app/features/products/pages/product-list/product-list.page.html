@@ -1,35 +1,84 @@
-<div class="container-vitalora py-8 sm:py-12">
-  <div class="mb-6">
-    <h1 class="font-display text-2xl font-semibold text-charcoal-900 sm:text-3xl">Shop All Supplements</h1>
-  </div>
+<div class="border-b border-charcoal-100 bg-white">
+  <div class="container-vitalora flex flex-col gap-5 py-7 sm:py-9 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-2xl">
+      <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-forest-700">Muscle Freak Nutrition</span>
+      <h1 class="mt-2 font-display text-[30px] font-extrabold leading-tight tracking-[-0.02em] text-charcoal-950 sm:text-[40px]">
+        Shop all supplements
+      </h1>
+      <p class="mt-2 max-w-xl text-sm leading-relaxed text-charcoal-500 sm:text-[15px]">
+        Whey, creatine, pre-workout and daily essentials from brands we trust.
+      </p>
+    </div>
 
+    <div class="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:min-w-[520px]">
+      <label class="relative flex-1">
+        <span class="sr-only">Search products</span>
+        <svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M21 21l-4.3-4.3" />
+        </svg>
+        <input
+          type="search"
+          [ngModel]="q"
+          (ngModelChange)="onSearchInput($event)"
+          placeholder="Search products"
+          class="h-11 w-full rounded-[3px] border border-charcoal-200 bg-white pl-10 pr-4 text-sm text-charcoal-900 outline-none transition focus:border-forest-500"
+        />
+      </label>
+
+      <label class="relative min-w-[190px]">
+        <span class="sr-only">Sort products</span>
+        <select [ngModel]="sort" (ngModelChange)="setSort($event)" class="h-11 w-full appearance-none rounded-[3px] border border-charcoal-200 bg-white px-3.5 pr-9 text-sm font-semibold text-charcoal-800 outline-none transition focus:border-forest-500">
+          @for (opt of sortOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+        <svg class="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="container-vitalora py-6 sm:py-8">
   <div class="flex flex-col gap-8 lg:flex-row">
     <!-- Filters sidebar (desktop) -->
-    <aside class="hidden w-64 shrink-0 lg:block">
-      <div class="sticky top-24 space-y-8">
-        <div>
-          <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Category</h3>
+    <aside class="hidden w-[280px] shrink-0 lg:block">
+      <div class="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto border-r border-charcoal-100 pr-6">
+        <div class="mb-5 flex items-center justify-between">
+          <div>
+            <h2 class="font-display text-[18px] font-extrabold text-charcoal-950">Filters</h2>
+            <p class="mt-0.5 text-xs text-charcoal-400">Narrow the catalogue</p>
+          </div>
+          @if (hasActiveFilters) {
+            <button type="button" (click)="clearFilters()" class="text-xs font-bold text-forest-700 hover:underline hover:underline-offset-4">Clear</button>
+          }
+        </div>
+
+        <div class="border-t border-charcoal-100 py-5">
+          <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Category</h3>
           <ul class="space-y-3">
             @for (node of categoryTree(); track node.parent.id) {
               <li>
                 <button
                   type="button"
                   (click)="setCategory(node.parent.slug)"
-                  class="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm font-semibold transition"
-                  [class]="category === node.parent.slug ? 'bg-forest-700 text-white' : 'text-charcoal-800 hover:bg-beige-100'"
+                  class="flex w-full items-center justify-between rounded-[3px] px-2.5 py-2 text-left text-sm font-semibold transition"
+                  [class]="category === node.parent.slug ? 'bg-charcoal-950 text-white' : 'text-charcoal-800 hover:bg-charcoal-50'"
                 >
                   <span>{{ node.parent.name }}</span>
                   <span class="text-xs opacity-70">{{ node.parent.productCount }}</span>
                 </button>
                 @if (node.kids.length > 0) {
-                  <ul class="mt-1 space-y-0.5 border-l border-charcoal-100 pl-2.5">
+                  <ul class="mt-1.5 space-y-0.5 border-l border-charcoal-100 pl-2.5">
                     @for (kid of node.kids; track kid.id) {
                       <li>
                         <button
                           type="button"
                           (click)="setCategory(kid.slug)"
-                          class="flex w-full items-center justify-between rounded-lg px-2.5 py-1 text-left text-[13px] transition"
-                          [class]="category === kid.slug ? 'bg-forest-700 text-white font-semibold' : 'text-charcoal-600 hover:bg-beige-100'"
+                          class="flex w-full items-center justify-between rounded-[3px] px-2.5 py-1.5 text-left text-[13px] transition"
+                          [class]="category === kid.slug ? 'bg-charcoal-950 text-white font-semibold' : 'text-charcoal-600 hover:bg-charcoal-50'"
                         >
                           <span>{{ kid.name }}</span>
                           <span class="text-xs opacity-70">{{ kid.productCount }}</span>
@@ -43,34 +92,34 @@
           </ul>
         </div>
 
-        <div>
-          <label class="flex cursor-pointer items-center gap-2.5">
+        <div class="border-t border-charcoal-100 py-5">
+          <label class="flex cursor-pointer items-center justify-between gap-3 rounded-[3px] border border-charcoal-200 px-3 py-2.5">
+            <span class="text-sm font-semibold text-charcoal-800">In stock only</span>
             <input
               type="checkbox"
               [checked]="inStockOnly"
               (change)="toggleInStockOnly()"
-              class="h-4 w-4 rounded border-charcoal-300"
+              class="h-4 w-4 rounded border-charcoal-300 accent-forest-700"
             />
-            <span class="text-sm font-medium text-charcoal-700">In stock only</span>
           </label>
         </div>
 
         @if (facets()?.brands?.length) {
-          <div>
-            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Brand</h3>
-            <ul class="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+          <div class="border-t border-charcoal-100 py-5">
+            <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Brand</h3>
+            <ul class="max-h-64 space-y-1 overflow-y-auto pr-1">
               @for (b of facets()!.brands; track b.id) {
                 <li>
-                  <label class="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm text-charcoal-600 hover:bg-beige-100">
+                  <label class="flex cursor-pointer items-center gap-2.5 rounded-[3px] px-2.5 py-2 text-sm text-charcoal-700 hover:bg-charcoal-50">
                     <input
                       type="checkbox"
                       [checked]="isBrandSelected(b.slug)"
                       (change)="toggleBrand(b.slug)"
-                      class="h-4 w-4 rounded border-charcoal-300"
+                      class="h-4 w-4 rounded border-charcoal-300 accent-forest-700"
                     />
                     <span class="flex-1">{{ b.name }}</span>
                     @if (b.houseBrand) {
-                      <span class="rounded bg-forest-50 px-1.5 py-0.5 text-[10px] font-semibold text-forest-700">Ours</span>
+                      <span class="rounded-[2px] bg-forest-50 px-1.5 py-0.5 text-[10px] font-bold text-forest-700">Ours</span>
                     }
                   </label>
                 </li>
@@ -80,19 +129,19 @@
         }
 
         @if (facets()?.flavours?.length) {
-          <div>
-            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Flavour</h3>
+          <div class="border-t border-charcoal-100 py-5">
+            <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Flavour</h3>
             <div class="flex flex-wrap gap-2">
               @for (f of facets()!.flavours; track f) {
                 <button
                   type="button"
                   (click)="toggleFlavour(f)"
                   [attr.aria-pressed]="isFlavourSelected(f)"
-                  class="rounded-full border px-3 py-1.5 text-xs font-medium transition"
+                  class="rounded-[3px] border px-3 py-1.5 text-xs font-bold transition"
                   [class]="
                     isFlavourSelected(f)
-                      ? 'border-forest-700 bg-forest-700 text-white'
-                      : 'border-charcoal-200 text-charcoal-600 hover:border-forest-400'
+                      ? 'border-charcoal-950 bg-charcoal-950 text-white'
+                      : 'border-charcoal-200 text-charcoal-600 hover:border-charcoal-400'
                   "
                 >
                   {{ f }}
@@ -103,19 +152,19 @@
         }
 
         @if (facets()?.sizes?.length) {
-          <div>
-            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Size</h3>
+          <div class="border-t border-charcoal-100 py-5">
+            <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Size</h3>
             <div class="flex flex-wrap gap-2">
               @for (s of facets()!.sizes; track s) {
                 <button
                   type="button"
                   (click)="toggleSize(s)"
                   [attr.aria-pressed]="isSizeSelected(s)"
-                  class="rounded-full border px-3 py-1.5 text-xs font-medium transition"
+                  class="rounded-[3px] border px-3 py-1.5 text-xs font-bold transition"
                   [class]="
                     isSizeSelected(s)
-                      ? 'border-forest-700 bg-forest-700 text-white'
-                      : 'border-charcoal-200 text-charcoal-600 hover:border-forest-400'
+                      ? 'border-charcoal-950 bg-charcoal-950 text-white'
+                      : 'border-charcoal-200 text-charcoal-600 hover:border-charcoal-400'
                   "
                 >
                   {{ s }}
@@ -125,75 +174,61 @@
           </div>
         }
 
-        <div>
-          <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Price Range</h3>
+        <div class="border-t border-charcoal-100 py-5">
+          <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Price range</h3>
           <div class="flex items-center gap-2">
             <input type="number" min="0" [(ngModel)]="minPrice" placeholder="Min" class="filter-input" />
             <span class="text-charcoal-400">–</span>
             <input type="number" min="0" [(ngModel)]="maxPrice" placeholder="Max" class="filter-input" />
           </div>
-          <button type="button" (click)="applyPriceFilter()" class="mt-2 w-full rounded-full border border-charcoal-200 py-1.5 text-xs font-semibold text-charcoal-700 hover:bg-beige-100">
+          <button type="button" (click)="applyPriceFilter()" class="mt-2 inline-flex h-9 w-full items-center justify-center rounded-[3px] border border-charcoal-900 bg-white text-xs font-bold text-charcoal-900 transition hover:bg-charcoal-900 hover:text-white">
             Apply
           </button>
         </div>
 
-        <div>
-          <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Minimum Rating</h3>
+        <div class="border-t border-charcoal-100 py-5">
+          <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Minimum rating</h3>
           <div class="flex flex-col gap-1.5">
             @for (r of [4, 3, 2]; track r) {
               <button
                 type="button"
                 (click)="setMinRating(r)"
-                class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-left text-sm transition"
-                [class]="minRating === r ? 'bg-forest-700 text-white font-semibold' : 'text-charcoal-600 hover:bg-beige-100'"
+                class="flex items-center gap-1.5 rounded-[3px] px-2.5 py-2 text-left text-sm transition"
+                [class]="minRating === r ? 'bg-charcoal-950 text-white font-semibold' : 'text-charcoal-600 hover:bg-charcoal-50'"
               >
                 {{ r }}★ &amp; up
               </button>
             }
           </div>
         </div>
-
-        @if (hasActiveFilters) {
-          <button type="button" (click)="clearFilters()" class="text-sm font-semibold text-forest-700 hover:underline">Clear all filters</button>
-        }
       </div>
     </aside>
 
     <!-- Main content -->
     <div class="flex-1">
-      <div class="mb-6 flex items-center justify-between gap-3">
-        <button type="button" (click)="mobileFiltersOpen.set(true)" class="flex items-center gap-2 rounded-full border border-charcoal-200 px-4 py-2 text-sm font-medium text-charcoal-700 lg:hidden">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+      <div class="mb-5 flex items-center justify-between gap-3">
+        <button type="button" (click)="mobileFiltersOpen.set(true)" class="inline-flex h-10 items-center gap-2 rounded-[3px] border border-charcoal-900 bg-white px-3.5 text-sm font-bold text-charcoal-900 lg:hidden">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
           Filters
         </button>
 
-        <input
-          type="search"
-          [ngModel]="q"
-          (ngModelChange)="onSearchInput($event)"
-          placeholder="Search products…"
-          class="hidden max-w-xs flex-1 rounded-full border border-charcoal-200 bg-white px-4 py-2 text-sm outline-none focus:border-forest-400 sm:block"
-        />
-
-        <select [ngModel]="sort" (ngModelChange)="setSort($event)" class="ml-auto rounded-full border border-charcoal-200 bg-white px-4 py-2 text-sm font-medium text-charcoal-700 outline-none">
-          @for (opt of sortOptions; track opt.value) {
-            <option [value]="opt.value">{{ opt.label }}</option>
-          }
-        </select>
+        @if (!loading()) {
+          <p class="ml-auto text-sm font-medium text-charcoal-500">
+            <span class="font-bold text-charcoal-900">{{ totalElements() }}</span>
+            product{{ totalElements() === 1 ? '' : 's' }}
+          </p>
+        }
       </div>
 
       @if (!loading()) {
-        <div class="mb-5 flex flex-wrap items-center gap-2">
-          <span class="text-sm text-charcoal-500">
-            {{ totalElements() }} product{{ totalElements() === 1 ? '' : 's' }}
-          </span>
+        <div class="mb-5 flex flex-wrap items-center gap-2 border-y border-charcoal-100 py-3">
+          <span class="text-xs font-bold uppercase tracking-[0.12em] text-charcoal-400">Showing results</span>
           @if (activeChips().length > 0) {
-            <span class="text-charcoal-300">|</span>
             @for (chip of activeChips(); track chip.label) {
               <button
                 type="button"
                 (click)="chip.clear()"
-                class="inline-flex items-center gap-1.5 rounded-full border border-forest-200 bg-forest-50 py-1 pl-3 pr-2 text-xs font-medium text-forest-800 transition hover:border-forest-400"
+                class="inline-flex h-8 items-center gap-1.5 rounded-[3px] border border-charcoal-200 bg-white pl-3 pr-2 text-xs font-bold text-charcoal-800 transition hover:border-charcoal-400"
                 [attr.aria-label]="'Remove filter ' + chip.label"
               >
                 {{ chip.label }}
@@ -202,26 +237,28 @@
                 </svg>
               </button>
             }
-            <button type="button" (click)="clearFilters()" class="text-xs font-semibold text-charcoal-500 underline-offset-2 hover:text-forest-700 hover:underline">
+            <button type="button" (click)="clearFilters()" class="ml-1 text-xs font-bold text-forest-700 underline-offset-4 hover:underline">
               Clear all
             </button>
+          } @else {
+            <span class="text-sm text-charcoal-500">No filters applied</span>
           }
         </div>
       }
 
       @if (loading()) {
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 xl:grid-cols-4">
           @for (i of [1, 2, 3, 4, 5, 6]; track i) {
-            <div class="aspect-[3/4.2] skeleton rounded-2xl"></div>
+            <div class="skeleton h-[360px] rounded-[10px] sm:h-[430px]"></div>
           }
         </div>
       } @else if (products().length === 0) {
         <app-empty-state title="No products found" description="Try adjusting your filters or search term.">
           <svg icon width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
-          <button action type="button" (click)="clearFilters()" class="rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-800">Clear Filters</button>
+          <button action type="button" (click)="clearFilters()" class="rounded-[3px] bg-charcoal-950 px-5 py-2.5 text-sm font-bold text-white hover:bg-forest-700">Clear Filters</button>
         </app-empty-state>
       } @else {
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 xl:grid-cols-4">
           @for (product of products(); track product.id) {
             <app-product-card [product]="product" />
           }
@@ -238,68 +275,135 @@
 @if (mobileFiltersOpen()) {
   <div class="fixed inset-0 z-50 lg:hidden">
     <div class="absolute inset-0 bg-charcoal-900/50" (click)="mobileFiltersOpen.set(false)"></div>
-    <div class="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-6">
-      <div class="mb-4 flex items-center justify-between">
-        <h2 class="font-display text-lg font-semibold">Filters</h2>
-        <button type="button" (click)="mobileFiltersOpen.set(false)" aria-label="Close">
+    <div class="absolute inset-x-0 bottom-0 flex max-h-[88vh] flex-col overflow-hidden rounded-t-[14px] bg-white shadow-lift">
+      <div class="flex items-center justify-between border-b border-charcoal-100 px-5 py-4">
+        <div>
+          <h2 class="font-display text-lg font-extrabold">Filters</h2>
+          <p class="text-xs text-charcoal-400">{{ totalElements() }} product{{ totalElements() === 1 ? '' : 's' }}</p>
+        </div>
+        <button type="button" (click)="mobileFiltersOpen.set(false)" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-charcoal-200 text-charcoal-700" aria-label="Close">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
       </div>
 
-      <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Category</h3>
-      <div class="mb-6 space-y-3">
-        @for (node of categoryTree(); track node.parent.id) {
-          <div>
-            <button
-              type="button"
-              (click)="setCategory(node.parent.slug)"
-              class="rounded-full border px-3 py-1.5 text-sm font-semibold"
-              [class]="category === node.parent.slug ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-300 text-charcoal-800'"
-            >
-              {{ node.parent.name }}
-            </button>
-            @if (node.kids.length > 0) {
-              <div class="mt-2 flex flex-wrap gap-2 pl-3">
-                @for (kid of node.kids; track kid.id) {
-                  <button
-                    type="button"
-                    (click)="setCategory(kid.slug)"
-                    class="rounded-full border px-3 py-1 text-[13px]"
-                    [class]="category === kid.slug ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-200 text-charcoal-600'"
-                  >
-                    {{ kid.name }}
-                  </button>
+      <div class="overflow-y-auto px-5 py-5">
+        <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Category</h3>
+        <div class="mb-6 space-y-3">
+          @for (node of categoryTree(); track node.parent.id) {
+            <div>
+              <button
+                type="button"
+                (click)="setCategory(node.parent.slug)"
+                class="rounded-[3px] border px-3 py-2 text-sm font-bold"
+                [class]="category === node.parent.slug ? 'bg-charcoal-950 text-white border-charcoal-950' : 'border-charcoal-300 text-charcoal-800'"
+              >
+                {{ node.parent.name }}
+              </button>
+              @if (node.kids.length > 0) {
+                <div class="mt-2 flex flex-wrap gap-2 pl-3">
+                  @for (kid of node.kids; track kid.id) {
+                    <button
+                      type="button"
+                      (click)="setCategory(kid.slug)"
+                      class="rounded-[3px] border px-3 py-1.5 text-[13px] font-semibold"
+                      [class]="category === kid.slug ? 'bg-charcoal-950 text-white border-charcoal-950' : 'border-charcoal-200 text-charcoal-600'"
+                    >
+                      {{ kid.name }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <label class="mb-6 flex cursor-pointer items-center justify-between gap-3 rounded-[3px] border border-charcoal-200 px-3 py-2.5">
+          <span class="text-sm font-semibold text-charcoal-800">In stock only</span>
+          <input
+            type="checkbox"
+            [checked]="inStockOnly"
+            (change)="toggleInStockOnly()"
+            class="h-4 w-4 rounded border-charcoal-300 accent-forest-700"
+          />
+        </label>
+
+        @if (facets()?.brands?.length) {
+          <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Brand</h3>
+          <div class="mb-6 grid grid-cols-1 gap-2">
+            @for (b of facets()!.brands; track b.id) {
+              <label class="flex cursor-pointer items-center gap-2.5 rounded-[3px] border border-charcoal-200 px-3 py-2 text-sm text-charcoal-700">
+                <input
+                  type="checkbox"
+                  [checked]="isBrandSelected(b.slug)"
+                  (change)="toggleBrand(b.slug)"
+                  class="h-4 w-4 rounded border-charcoal-300 accent-forest-700"
+                />
+                <span class="flex-1">{{ b.name }}</span>
+                @if (b.houseBrand) {
+                  <span class="rounded-[2px] bg-forest-50 px-1.5 py-0.5 text-[10px] font-bold text-forest-700">Ours</span>
                 }
-              </div>
+              </label>
             }
           </div>
         }
-      </div>
 
-      <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Price Range</h3>
-      <div class="mb-6 flex items-center gap-2">
-        <input type="number" min="0" [(ngModel)]="minPrice" placeholder="Min" class="filter-input" />
-        <span class="text-charcoal-400">–</span>
-        <input type="number" min="0" [(ngModel)]="maxPrice" placeholder="Max" class="filter-input" />
-      </div>
-
-      <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-charcoal-800">Minimum Rating</h3>
-      <div class="mb-8 flex flex-wrap gap-2">
-        @for (r of [4, 3, 2]; track r) {
-          <button
-            type="button"
-            (click)="setMinRating(r)"
-            class="rounded-full border px-3 py-1.5 text-sm"
-            [class]="minRating === r ? 'bg-forest-700 text-white border-forest-700' : 'border-charcoal-200 text-charcoal-600'"
-          >
-            {{ r }}★ &amp; up
-          </button>
+        @if (facets()?.flavours?.length) {
+          <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Flavour</h3>
+          <div class="mb-6 flex flex-wrap gap-2">
+            @for (f of facets()!.flavours; track f) {
+              <button
+                type="button"
+                (click)="toggleFlavour(f)"
+                class="rounded-[3px] border px-3 py-1.5 text-xs font-bold"
+                [class]="isFlavourSelected(f) ? 'border-charcoal-950 bg-charcoal-950 text-white' : 'border-charcoal-200 text-charcoal-600'"
+              >
+                {{ f }}
+              </button>
+            }
+          </div>
         }
+
+        @if (facets()?.sizes?.length) {
+          <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Size</h3>
+          <div class="mb-6 flex flex-wrap gap-2">
+            @for (s of facets()!.sizes; track s) {
+              <button
+                type="button"
+                (click)="toggleSize(s)"
+                class="rounded-[3px] border px-3 py-1.5 text-xs font-bold"
+                [class]="isSizeSelected(s) ? 'border-charcoal-950 bg-charcoal-950 text-white' : 'border-charcoal-200 text-charcoal-600'"
+              >
+                {{ s }}
+              </button>
+            }
+          </div>
+        }
+
+        <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Price range</h3>
+        <div class="mb-6 flex items-center gap-2">
+          <input type="number" min="0" [(ngModel)]="minPrice" placeholder="Min" class="filter-input" />
+          <span class="text-charcoal-400">–</span>
+          <input type="number" min="0" [(ngModel)]="maxPrice" placeholder="Max" class="filter-input" />
+        </div>
+
+        <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-500">Minimum rating</h3>
+        <div class="mb-2 flex flex-wrap gap-2">
+          @for (r of [4, 3, 2]; track r) {
+            <button
+              type="button"
+              (click)="setMinRating(r)"
+              class="rounded-[3px] border px-3 py-1.5 text-sm font-semibold"
+              [class]="minRating === r ? 'bg-charcoal-950 text-white border-charcoal-950' : 'border-charcoal-200 text-charcoal-600'"
+            >
+              {{ r }}★ &amp; up
+            </button>
+          }
+        </div>
       </div>
 
-      <div class="flex gap-3">
-        <button type="button" (click)="clearFilters(); mobileFiltersOpen.set(false)" class="flex-1 rounded-full border border-charcoal-200 py-3 text-sm font-semibold text-charcoal-700">Clear</button>
-        <button type="button" (click)="applyPriceFilter(); mobileFiltersOpen.set(false)" class="flex-1 rounded-full bg-forest-700 py-3 text-sm font-semibold text-white">Show Results</button>
+      <div class="flex gap-3 border-t border-charcoal-100 p-5">
+        <button type="button" (click)="clearFilters(); mobileFiltersOpen.set(false)" class="flex-1 rounded-[3px] border border-charcoal-200 py-3 text-sm font-bold text-charcoal-700">Clear</button>
+        <button type="button" (click)="applyPriceFilter(); mobileFiltersOpen.set(false)" class="flex-1 rounded-[3px] bg-charcoal-950 py-3 text-sm font-bold text-white">Show Results</button>
       </div>
     </div>
   </div>
