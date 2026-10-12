@@ -147,7 +147,7 @@ public class OrderServiceImpl implements OrderService {
                 .shippingAmount(shippingAmount)
                 .taxAmount(taxAmount)
                 .grandTotal(grandTotal)
-                .paymentMethod("COD")
+                .paymentMethod(normalisedPaymentMethod(request.paymentMethod()))
                 .estimatedDeliveryDate(LocalDate.now().plusDays(commerce.estimatedDeliveryDays()))
                 .customerNotes(request.customerNotes())
                 .build();
@@ -159,7 +159,7 @@ public class OrderServiceImpl implements OrderService {
 
         Payment payment = Payment.builder()
                 .order(order)
-                .method("COD")
+                .method(normalisedPaymentMethod(request.paymentMethod()))
                 .status(Payment.PaymentStatus.PENDING)
                 .amount(grandTotal)
                 .build();
@@ -189,6 +189,13 @@ public class OrderServiceImpl implements OrderService {
         cartRepository.save(cart);
 
         return OrderMapper.toResponse(order);
+    }
+
+    /** COD when nothing is sent, otherwise the uppercase label we store on the order. */
+    private static String normalisedPaymentMethod(String raw) {
+        if (raw == null || raw.isBlank()) return "COD";
+        String s = raw.trim().toUpperCase();
+        return s.equals("ONLINE") || s.equals("COD") ? s : "COD";
     }
 
     // ---------- Admin ----------

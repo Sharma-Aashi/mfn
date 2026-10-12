@@ -39,6 +39,19 @@ public class Payment {
     @Column(name = "transaction_ref", length = 100)
     private String transactionRef;
 
+    /** Razorpay order id ("order_…"), handed to the widget to open a session. */
+    @Column(name = "gateway_order_id", length = 100)
+    private String gatewayOrderId;
+
+    /** Razorpay payment id ("pay_…") the widget returns on a successful capture. */
+    @Column(name = "gateway_payment_id", length = 100)
+    private String gatewayPaymentId;
+
+    /** HMAC Razorpay signs {gatewayOrderId}|{gatewayPaymentId} with. We re-sign
+     *  server-side to prove the client isn't lying. */
+    @Column(name = "gateway_signature", length = 255)
+    private String gatewaySignature;
+
     @Column(name = "paid_at")
     private Instant paidAt;
 

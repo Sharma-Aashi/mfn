@@ -3,10 +3,12 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Address } from '../../../core/models/address.model';
+import { Order } from '../../../core/models/order.model';
 import { AddressService } from '../../../core/services/address.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
 import { OrderService } from '../../../core/services/order.service';
+import { PaymentService } from '../../../core/services/payment.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { SiteSettingsService } from '../../../core/services/site-settings.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -24,6 +26,7 @@ export class CheckoutPage {
   private readonly addressService = inject(AddressService);
   private readonly authService = inject(AuthService);
   private readonly orderService = inject(OrderService);
+  private readonly paymentService = inject(PaymentService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
@@ -31,6 +34,9 @@ export class CheckoutPage {
   protected readonly steps = ['Customer Info', 'Shipping', 'Review', 'Payment'];
   protected readonly savedAddresses = signal<Address[]>([]);
   protected readonly submitting = signal(false);
+  /** 'COD' or 'ONLINE'. Default COD keeps the earlier flow working if the
+   *  Razorpay widget fails to load for any reason. */
+  protected readonly paymentMethod = signal<'COD' | 'ONLINE'>('COD');
 
   protected readonly commerce = inject(SiteSettingsService).commerce;
 
@@ -117,18 +123,87 @@ export class CheckoutPage {
       return;
     }
     this.submitting.set(true);
+    const method = this.paymentMethod();
     const request = {
       ...this.customerForm.getRawValue(),
       ...this.addressForm.getRawValue(),
       customerNotes: this.notesControl.value || undefined,
+      paymentMethod: method,
     };
     this.orderService.createOrder(request).subscribe({
       next: (order) => {
-        this.submitting.set(false);
         this.cartService.refresh(); // server clears the cart on order creation; sync the header badge
-        this.router.navigate(['/checkout/confirmation', order.orderNumber]);
+        if (method === 'ONLINE') {
+          this.openGateway(order);
+        } else {
+          this.submitting.set(false);
+          this.router.navigate(['/checkout/confirmation', order.orderNumber]);
+        }
       },
       error: () => this.submitting.set(false),
     });
+  }
+
+  /**
+   * Reserve a Razorpay order and open the hosted checkout widget. On capture,
+   * verify the signature with the server before marking the order confirmed
+   * and sending the customer to the confirmation page. A failed or dismissed
+   * widget leaves the order PENDING + the customer back on the payment step,
+   * where they can retry (the same order id is reused).
+   */
+  private async openGateway(order: Order): Promise<void> {
+    try {
+      await this.paymentService.loadWidget();
+      this.paymentService.createGatewayOrder(order.id).subscribe({
+        next: (session) => {
+          const options = {
+            key: session.keyId,
+            order_id: session.gatewayOrderId,
+            amount: session.amount,
+            currency: session.currency,
+            name: 'MUSCLE FREAK NUTRITION',
+            description: `Order ${session.orderNumber}`,
+            prefill: {
+              name: order.customerFullName,
+              email: order.customerEmail,
+              contact: order.customerPhone,
+            },
+            theme: { color: '#0c6b44' },
+            handler: (response: any) => {
+              this.paymentService.verify(order.id, response).subscribe({
+                next: () => {
+                  this.submitting.set(false);
+                  this.router.navigate(['/checkout/confirmation', order.orderNumber]);
+                },
+                error: () => {
+                  this.submitting.set(false);
+                  this.toast.error('Payment could not be verified. Please contact support with your order number.');
+                },
+              });
+            },
+            modal: {
+              ondismiss: () => {
+                this.submitting.set(false);
+                this.toast.info('Payment cancelled. You can retry from the Payment step.');
+              },
+            },
+          };
+          const w: any = (window as any).Razorpay;
+          if (!w) {
+            this.submitting.set(false);
+            this.toast.error('Payment widget did not load. Please try again.');
+            return;
+          }
+          new w(options).open();
+        },
+        error: () => {
+          this.submitting.set(false);
+          this.toast.error('Could not start the payment. Please choose Cash on Delivery or try again.');
+        },
+      });
+    } catch (e) {
+      this.submitting.set(false);
+      this.toast.error('Payment widget could not load. Please check your connection.');
+    }
   }
 }

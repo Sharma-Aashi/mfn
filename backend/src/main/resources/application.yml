@@ -52,6 +52,14 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:604800000} # 7 days
   cors:
     allowed-origins: ${APP_CORS_ORIGINS:http://localhost:4200}
+  payments:
+    # Razorpay merchant credentials. Leave the secrets blank in dev and the
+    # service surfaces a friendly "online payments not configured" error
+    # instead of silently 500-ing; COD orders keep working regardless.
+    razorpay:
+      key-id: ${RAZORPAY_KEY_ID:}
+      key-secret: ${RAZORPAY_KEY_SECRET:}
+      webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
   upload:
     dir: ${APP_UPLOAD_DIR:uploads}
     public-path: /uploads

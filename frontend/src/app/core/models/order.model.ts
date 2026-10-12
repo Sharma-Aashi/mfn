@@ -53,6 +53,8 @@ export interface CreateOrderRequest {
   shippingCountry?: string;
   customerNotes?: string;
   saveAddress?: boolean;
+  /** "COD" (default) or "ONLINE". ONLINE orders stay PENDING until the gateway verifies. */
+  paymentMethod?: 'COD' | 'ONLINE';
 }
 
 /** The compact row the admin orders list shows — kept flat so the table

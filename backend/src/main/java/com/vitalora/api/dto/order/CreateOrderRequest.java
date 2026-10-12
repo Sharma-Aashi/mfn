@@ -15,6 +15,8 @@ public record CreateOrderRequest(
         @NotBlank(message = "Postal code is required") @Size(max = 20) String shippingPostalCode,
         @Size(max = 100) String shippingCountry,
         @Size(max = 500) String customerNotes,
-        Boolean saveAddress
+        Boolean saveAddress,
+        /** "COD" (default) or "ONLINE". Online orders stay PENDING until the gateway confirms. */
+        @Size(max = 20) String paymentMethod
 ) {
 }
