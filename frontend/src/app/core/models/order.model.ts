@@ -54,3 +54,32 @@ export interface CreateOrderRequest {
   customerNotes?: string;
   saveAddress?: boolean;
 }
+
+/** The compact row the admin orders list shows — kept flat so the table
+ *  renders quickly at a hundred rows a page. */
+export interface AdminOrderSummary {
+  id: number;
+  orderNumber: string;
+  status: OrderStatus;
+  customerFullName: string;
+  customerEmail: string;
+  customerPhone: string;
+  grandTotal: number;
+  itemCount: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  createdAt: string;
+}
+
+export interface UpdateOrderStatusRequest {
+  status: OrderStatus;
+}
+
+export const ORDER_STATUSES: OrderStatus[] = [
+  'PENDING',
+  'CONFIRMED',
+  'PROCESSING',
+  'SHIPPED',
+  'DELIVERED',
+  'CANCELLED',
+];

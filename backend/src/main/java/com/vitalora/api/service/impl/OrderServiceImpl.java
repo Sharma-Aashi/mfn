@@ -2,6 +2,7 @@ package com.vitalora.api.service.impl;
 
 import com.vitalora.api.dto.cms.CommerceSettings;
 import com.vitalora.api.dto.common.PageResponse;
+import com.vitalora.api.dto.order.AdminOrderSummaryResponse;
 import com.vitalora.api.dto.order.CreateOrderRequest;
 import com.vitalora.api.dto.order.OrderResponse;
 import com.vitalora.api.entity.*;
@@ -13,9 +14,11 @@ import com.vitalora.api.repository.*;
 import com.vitalora.api.service.CmsService;
 import com.vitalora.api.service.OrderService;
 import com.vitalora.api.util.OrderNumberGenerator;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -186,5 +189,68 @@ public class OrderServiceImpl implements OrderService {
         cartRepository.save(cart);
 
         return OrderMapper.toResponse(order);
+    }
+
+    // ---------- Admin ----------
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<AdminOrderSummaryResponse> listForAdmin(String q, String status, int page, int size) {
+        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Specification<Order> spec = adminFilter(q, status);
+        return PageResponse.of(orderRepository.findAll(spec, pageable), OrderMapper::toAdminSummary);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getForAdmin(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Order", id));
+        return OrderMapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse updateStatus(Long id, String newStatus) {
+        Order.OrderStatus next;
+        try {
+            next = Order.OrderStatus.valueOf(newStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Unknown order status: " + newStatus);
+        }
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Order", id));
+        order.setStatus(next);
+        orderRepository.save(order);
+        return OrderMapper.toResponse(order);
+    }
+
+    /**
+     * The list page needs just two filters — a free-text search over order
+     * number, customer name, email and phone, and a status facet. Keeping
+     * them as a single Specification lets us pass {@code null} for either
+     * without the service branching into four separate repository queries.
+     */
+    private static Specification<Order> adminFilter(String q, String status) {
+        return (root, cq, cb) -> {
+            List<Predicate> preds = new ArrayList<>();
+            if (q != null && !q.isBlank()) {
+                String like = "%" + q.trim().toLowerCase() + "%";
+                preds.add(cb.or(
+                        cb.like(cb.lower(root.get("orderNumber")), like),
+                        cb.like(cb.lower(root.get("customerFullName")), like),
+                        cb.like(cb.lower(root.get("customerEmail")), like),
+                        cb.like(cb.lower(root.get("customerPhone")), like)
+                ));
+            }
+            if (status != null && !status.isBlank()) {
+                try {
+                    preds.add(cb.equal(root.get("status"), Order.OrderStatus.valueOf(status.toUpperCase())));
+                } catch (IllegalArgumentException ignored) {
+                    // Bad status filter gets silently dropped — the list still works.
+                }
+            }
+            return cb.and(preds.toArray(new Predicate[0]));
+        };
     }
 }

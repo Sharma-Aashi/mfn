@@ -130,6 +130,7 @@ export class AdminLayoutPage {
   protected readonly mobileNavOpen = signal(false);
 
   protected readonly navItems: AdminNavItem[] = [
+    { label: 'Orders', path: '/admin/orders', icon: 'orders' },
     { label: 'Products', path: '/admin/products', icon: 'box' },
     { label: 'Categories', path: '/admin/categories', icon: 'grid' },
     { label: 'Brands', path: '/admin/brands', icon: 'stack' },

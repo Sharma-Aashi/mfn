@@ -109,6 +109,8 @@ export const routes: Routes = [
       { path: 'products/:id/edit', loadComponent: () => import('./features/admin/pages/products/admin-product-form.page').then((m) => m.AdminProductFormPage) },
       { path: 'categories', loadComponent: () => import('./features/admin/pages/categories/admin-category-list.page').then((m) => m.AdminCategoryListPage) },
       { path: 'brands', loadComponent: () => import('./features/admin/pages/brands/admin-brand-list.page').then((m) => m.AdminBrandListPage) },
+      { path: 'orders', loadComponent: () => import('./features/admin/pages/orders/admin-order-list.page').then((m) => m.AdminOrderListPage) },
+      { path: 'orders/:id', loadComponent: () => import('./features/admin/pages/orders/admin-order-detail.page').then((m) => m.AdminOrderDetailPage) },
       { path: 'inventory', loadComponent: () => import('./features/admin/pages/inventory/admin-inventory.page').then((m) => m.AdminInventoryPage) },
       { path: 'reviews', loadComponent: () => import('./features/admin/pages/reviews/admin-reviews.page').then((m) => m.AdminReviewsPage) },
       { path: 'faqs', loadComponent: () => import('./features/admin/pages/faqs/admin-faqs.page').then((m) => m.AdminFaqsPage) },

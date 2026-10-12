@@ -1,5 +1,6 @@
 package com.vitalora.api.mapper;
 
+import com.vitalora.api.dto.order.AdminOrderSummaryResponse;
 import com.vitalora.api.dto.order.OrderItemResponse;
 import com.vitalora.api.dto.order.OrderResponse;
 import com.vitalora.api.entity.Order;
@@ -9,6 +10,23 @@ import com.vitalora.api.entity.Payment;
 public final class OrderMapper {
 
     private OrderMapper() {
+    }
+
+    public static AdminOrderSummaryResponse toAdminSummary(Order order) {
+        Payment payment = order.getPayment();
+        return new AdminOrderSummaryResponse(
+                order.getId(),
+                order.getOrderNumber(),
+                order.getStatus().name(),
+                order.getCustomerFullName(),
+                order.getCustomerEmail(),
+                order.getCustomerPhone(),
+                order.getGrandTotal(),
+                order.getItems().stream().mapToInt(OrderItem::getQuantity).sum(),
+                order.getPaymentMethod(),
+                payment != null ? payment.getStatus().name() : "PENDING",
+                order.getCreatedAt()
+        );
     }
 
     public static OrderResponse toResponse(Order order) {
