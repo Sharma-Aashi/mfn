@@ -1,5 +1,7 @@
 import { Component, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { Category } from '../../../core/models/category.model';
 import { AuthService } from '../../../core/services/auth.service';
@@ -41,11 +43,8 @@ const MORE_MENU = -1;
           <form (ngSubmit)="submitSearch()" class="hidden flex-1 md:block">
             <label for="site-search" class="sr-only">Search products and brands</label>
             <div class="flex h-[50px] max-w-[760px] items-center overflow-hidden rounded-[6px] border-[1.5px] border-charcoal-900 bg-white">
-              <span class="hidden shrink-0 items-center gap-1.5 border-r border-charcoal-100 px-4 text-[13px] text-charcoal-500 lg:flex">
+              <span class="hidden shrink-0 items-center border-r border-charcoal-100 px-4 text-[13px] text-charcoal-500 lg:flex">
                 All categories
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
               </span>
               <input
                 id="site-search"
@@ -391,6 +390,18 @@ export class HeaderComponent {
 
   constructor() {
     this.categoryService.getAllActive().subscribe((c) => this.categories.set(c));
+
+    // The search input lives in the sticky header and persists across every
+    // route; without this the field keeps a stale query (e.g. "multivitamin")
+    // long after the user has clicked back home. Mirror the live URL instead:
+    // on /products?q=… reflect that term, elsewhere clear it.
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd), takeUntilDestroyed())
+      .subscribe((e) => {
+        const url = new URL(e.urlAfterRedirects, 'http://_');
+        const onProducts = url.pathname.startsWith('/products') && !url.pathname.includes('/products/');
+        this.searchTerm = onProducts ? (url.searchParams.get('q') ?? '') : '';
+      });
   }
 
   protected toggleCategory(id: number): void {
